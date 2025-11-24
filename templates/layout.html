@@ -1,0 +1,44 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groupie Tracker Deluxe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-sA+4J1rYKz5Jzi10JycBvZkyoVQbLMmACG3GxZ1Zq8E=" crossorigin="">
+    <link rel="stylesheet" href="/static/css/style.css">
+    {{block "head" .}}{{end}}
+</head>
+<body>
+<div class="page-shell">
+    <header class="site-header">
+        <div class="logo">Groupie<span>Tracker</span></div>
+        <nav class="main-nav">
+            <a href="/">Accueil</a>
+            <a href="#filters">Filtres</a>
+            <a href="#artists">Line-up</a>
+            <a href="#insights">Insights</a>
+        </nav>
+        <button class="pulse-btn" id="refresh-btn" data-endpoint="/api/refresh">Rafraîchir</button>
+    </header>
+    <main>
+        {{block "content" .}}{{end}}
+    </main>
+    <footer class="site-footer">
+        <p>Projet Groupie Tracker • Go + Leaflet + amour du front ✨</p>
+    </footer>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-o9N1j7kGStGZ1HFl7fLyZj6Zj1l7oO5OVw2Agnz8wY0="
+        crossorigin=""></script>
+<script src="/static/js/global.js" defer></script>
+{{block "pageScripts" .}}{{end}}
+</body>
+</html>
+{{end}}
+
+

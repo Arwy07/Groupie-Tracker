@@ -1,0 +1,53 @@
+{{define "artist.html"}}
+{{template "layout" .}}
+{{end}}
+
+{{define "content"}}
+<section class="artist-hero">
+    <div class="artist-hero__visual">
+        <img src="{{.Artist.Image}}" alt="Photo {{.Artist.Name}}">
+    </div>
+    <div class="artist-hero__info">
+        <p class="eyebrow">Artiste</p>
+        <h1>{{.Artist.Name}}</h1>
+        <p>Création en {{.Artist.CreationDate}} • Premier album {{.Artist.FirstAlbum}}</p>
+        <div class="chips">
+            {{range .Artist.Members}}<span>{{.}}</span>{{end}}
+        </div>
+        <a class="ghost-btn" href="/">Retour à la liste</a>
+    </div>
+</section>
+
+<section class="artist-concerts">
+    <header>
+        <p class="eyebrow">Concerts</p>
+        <h2>Dates & lieux</h2>
+    </header>
+    <div class="concert-list">
+        {{range .Artist.Concerts}}
+        <article class="concert-card">
+            <h3>{{.DisplayLocation}}</h3>
+            <ul>
+                {{range .Dates}}<li>{{.}}</li>{{end}}
+            </ul>
+        </article>
+        {{end}}
+    </div>
+</section>
+
+<section class="artist-map">
+    <header>
+        <p class="eyebrow">Carte vivante</p>
+        <h2>Visualiser la tournée</h2>
+    </header>
+    <div id="artist-map"></div>
+</section>
+{{end}}
+
+{{define "pageScripts"}}
+<script>
+window.__ARTIST = {{toJSON .Artist}};
+</script>
+<script src="/static/js/artist.js" defer></script>
+{{end}}
+

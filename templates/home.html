@@ -1,0 +1,110 @@
+{{define "home.html"}}
+{{template "layout" .}}
+{{end}}
+
+{{define "content"}}
+<section class="hero">
+    <div class="hero__content">
+        <p class="eyebrow">Edition Live data</p>
+        <h1>Cartographier la musique <span>en temps réel</span></h1>
+        <p class="lede">
+            Explore les concerts, filtre par époque ou par lieux et plonge dans une carte animée
+            qui géolocalise chaque tournée. Tout est propulsé par un backend Go robuste.
+        </p>
+        <div class="hero__cta">
+            <a class="primary-btn" href="#artists">Voir les artistes</a>
+            <a class="ghost-btn" href="#filters">Configurer les filtres</a>
+        </div>
+    </div>
+    <div class="hero__visual">
+        <div class="orb orb--pink"></div>
+        <div class="orb orb--blue"></div>
+        <div class="globe">
+            <div class="globe__track"></div>
+            <div class="globe__track globe__track--reverse"></div>
+        </div>
+    </div>
+</section>
+
+<section id="filters" class="filters-panel">
+    <header>
+        <p class="eyebrow">Filtres intelligents</p>
+        <h2>Affiner la sélection</h2>
+        <p>Chaque filtre est appliqué côté serveur pour rester fiable même en cas de dataset massif.</p>
+    </header>
+    <form id="filter-form" class="filter-grid">
+        <div class="filter-card">
+            <label>Année de création</label>
+            <div class="range">
+                <input type="number" name="creationMin" placeholder="Min ({{.FilterMeta.CreationMin}})">
+                <input type="number" name="creationMax" placeholder="Max ({{.FilterMeta.CreationMax}})">
+            </div>
+        </div>
+        <div class="filter-card">
+            <label>Premier album</label>
+            <div class="range">
+                <input type="number" name="albumMin" placeholder="Min ({{.FilterMeta.AlbumMin}})">
+                <input type="number" name="albumMax" placeholder="Max ({{.FilterMeta.AlbumMax}})">
+            </div>
+        </div>
+        <div class="filter-card">
+            <label>Membres</label>
+            <div class="range">
+                <input type="number" name="membersMin" placeholder="Min ({{.FilterMeta.MembersMin}})">
+                <input type="number" name="membersMax" placeholder="Max ({{.FilterMeta.MembersMax}})">
+            </div>
+        </div>
+        <div class="filter-card filter-card--locations">
+            <label>Concerts par lieu</label>
+            <div class="locations-scroll">
+                {{range .FilterMeta.Locations}}
+                <label class="checkbox">
+                    <input type="checkbox" name="location" value="{{.}}">
+                    <span>{{.}}</span>
+                </label>
+                {{end}}
+            </div>
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="primary-btn">Appliquer</button>
+            <button type="reset" class="ghost-btn">Réinitialiser</button>
+        </div>
+    </form>
+</section>
+
+<section class="search-zone">
+    <div class="search-box">
+        <label for="search-input">Recherche instantanée (nom, membre, date…)</label>
+        <input id="search-input" type="search" placeholder="Tape 'phil' par exemple">
+        <ul id="suggestions" class="suggestions"></ul>
+    </div>
+</section>
+
+<section id="artists" class="card-grid"></section>
+
+<section id="insights" class="insights">
+    <article class="insight-card">
+        <p class="eyebrow">Instantané</p>
+        <h3 id="total-artists">0 artistes visibles</h3>
+        <p>Chaque rafraîchissement récupère la dernière version publique de l'API Groupie Tracker.</p>
+    </article>
+    <article class="insight-card">
+        <p class="eyebrow">Carte</p>
+        <h3>Géolocalisation Leaflet</h3>
+        <p>Rendez-vous sur la page d'un artiste pour visualiser tous ses concerts sur une carte animée.</p>
+    </article>
+    <article class="insight-card">
+        <p class="eyebrow">Performances</p>
+        <h3>Backend Go optimisé</h3>
+        <p>Les appels réseaux sont parallélisés et mis en cache pour des temps de réponse ultra courts.</p>
+    </article>
+</section>
+{{end}}
+
+{{define "pageScripts"}}
+<script>
+window.__ARTISTS = {{.ArtistsJSON}};
+</script>
+<script src="/static/js/app.js" defer></script>
+{{end}}
+
