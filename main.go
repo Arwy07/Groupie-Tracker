@@ -223,6 +223,10 @@ func (a *app) handleArtist(w http.ResponseWriter, r *http.Request) {
 		loc := art.Concerts[i].DisplayLocation
 		coords, err := a.lookupCoordinates(ctx, loc)
 		if err != nil {
+			rawFallback := strings.ReplaceAll(art.Concerts[i].Location, "-", " ")
+			coords, err = a.lookupCoordinates(ctx, rawFallback)
+		}
+		if err != nil {
 			log.Printf("geocode %s: %v", loc, err)
 			continue
 		}
@@ -596,11 +600,18 @@ func parseYear(value string) int {
 
 func prettifyLocation(raw string) string {
 	replaced := strings.ReplaceAll(raw, "_", " ")
-	parts := strings.Split(replaced, "-")
-	for i, part := range parts {
-		parts[i] = strings.Title(strings.ReplaceAll(part, "  ", " "))
+	segments := strings.Split(replaced, "-")
+	for i, segment := range segments {
+		clean := strings.TrimSpace(segment)
+		clean = strings.Join(strings.Fields(clean), " ")
+		if len(clean) <= 3 {
+			clean = strings.ToUpper(clean)
+		} else {
+			clean = strings.Title(clean)
+		}
+		segments[i] = clean
 	}
-	return strings.Join(parts, ", ")
+	return strings.Join(segments, ", ")
 }
 
 func (a *app) lookupCoordinates(ctx context.Context, location string) (*coordinates, error) {

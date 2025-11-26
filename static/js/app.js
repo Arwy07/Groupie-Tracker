@@ -9,10 +9,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const suggestions = document.getElementById("suggestions");
   const searchInput = document.getElementById("search-input");
   const total = document.getElementById("total-artists");
+  const filtersOverlay = document.getElementById("filters-overlay");
+  const openFilterButtons = document.querySelectorAll("[data-open-filters]");
+  const closeFilterButtons = document.querySelectorAll("[data-close-filters]");
+  const body = document.body;
 
-  if (!grid || !state.raw.length) {
+  if (!grid) {
     return;
   }
+
+  const toggleFilters = (shouldOpen) => {
+    if (!filtersOverlay) return;
+    filtersOverlay.classList.toggle("is-visible", shouldOpen);
+    body.classList.toggle("has-drawer", shouldOpen);
+    filtersOverlay.setAttribute("aria-hidden", shouldOpen ? "false" : "true");
+    if (shouldOpen) {
+      const firstInput = filterForm?.querySelector("input");
+      if (firstInput) {
+        setTimeout(() => firstInput.focus(), 150);
+      }
+    }
+  };
 
   const renderCards = (artists) => {
     state.displayed = artists;
@@ -32,23 +49,48 @@ document.addEventListener("DOMContentLoaded", () => {
       card.className = "artist-card";
       card.dataset.id = artist.id;
       card.style.setProperty("--delay", `${index * 40}ms`);
+
+      const members = Array.isArray(artist.members) ? artist.members : [];
+      const concerts = Array.isArray(artist.concerts) ? artist.concerts : [];
+      const memberPreview = members.slice(0, 3).map((member) => `<span>${member}</span>`).join("");
+      const extraMembers = members.length > 3 ? `<span>+${members.length - 3}</span>` : "";
+      const uniqueCities = new Set(
+        concerts.map((concert) => concert.displayLocation || "Lieu non renseigné")
+      ).size;
+      const concertsCount = concerts.reduce((total, concert) => {
+        const dates = Array.isArray(concert.dates) ? concert.dates : [];
+        return total + dates.length;
+      }, 0);
+
       card.innerHTML = `
-        <div class="artist-card__media">
+        <div class="artist-card__visual">
           <img src="${artist.image}" alt="${artist.name}">
         </div>
-        <div class="artist-card__body">
-          <div class="artist-card__header">
-            <h3>${artist.name}</h3>
-            <span>${artist.creationDate}</span>
+        <div class="artist-card__content">
+          <div class="artist-card__topline">
+            <div>
+              <p class="artist-card__eyebrow">Fondé en ${artist.creationDate}</p>
+              <h3>${artist.name}</h3>
+            </div>
+            <span class="artist-card__badge">${artist.members.length} membre(s)</span>
           </div>
-          <p class="artist-card__meta">${artist.members.length} membre(s) • 1er album ${artist.firstAlbum}</p>
-          <div class="pill-group">
-            ${artist.members.slice(0, 3).map((member) => `<span>${member}</span>`).join("")}
-            ${artist.members.length > 3 ? `<span>+${artist.members.length - 3} autres</span>` : ""}
+          <p class="artist-card__lede">1er album ${artist.firstAlbum}</p>
+          <div class="artist-card__tags">
+            ${memberPreview}${extraMembers}
           </div>
-          <div class="artist-card__footer">
-            <span>${artist.concerts.length} lieu(x) référencés</span>
-            <a class="ghost-btn" href="/artist?id=${artist.id}">Voir la carte</a>
+          <div class="artist-card__stats">
+            <div>
+              <span>Villes suivies</span>
+              <strong>${uniqueCities}</strong>
+            </div>
+            <div>
+              <span>Concerts listés</span>
+              <strong>${concertsCount}</strong>
+            </div>
+          </div>
+          <div class="artist-card__actions">
+            <span>${uniqueCities} lieu(x) cartographié(s)</span>
+            <a class="ghost-btn" href="/artist?id=${artist.id}">Voir la fiche</a>
           </div>
         </div>
       `;
@@ -79,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       renderCards(data);
+      toggleFilters(false);
     } catch (err) {
       console.error(err);
       grid.innerHTML = `<div class="empty">
@@ -107,20 +150,42 @@ document.addEventListener("DOMContentLoaded", () => {
     const needle = query.toLowerCase();
     const matches = [];
     state.raw.forEach((artist) => {
+      const members = Array.isArray(artist.members) ? artist.members : [];
+      const concerts = Array.isArray(artist.concerts) ? artist.concerts : [];
+      const artistMeta = `Créé en ${artist.creationDate} • 1er album ${artist.firstAlbum}`;
+
       if (artist.name.toLowerCase().includes(needle)) {
-        matches.push({ label: artist.name, type: "Artiste", id: artist.id });
+        matches.push({ label: artist.name, type: "Artiste", meta: artistMeta, id: artist.id });
       }
-      artist.members.forEach((member) => {
+      members.forEach((member) => {
         if (member.toLowerCase().includes(needle)) {
-          matches.push({ label: `${member} — membre`, type: "Membre", id: artist.id });
+          matches.push({
+            label: member,
+            type: "Membre",
+            meta: `Appartient à ${artist.name}`,
+            id: artist.id,
+          });
         }
       });
       if (`${artist.creationDate}`.includes(needle)) {
-        matches.push({ label: `Création ${artist.creationDate}`, type: "Date", id: artist.id });
+        matches.push({
+          label: artist.name,
+          type: "Création",
+          meta: `Fondé en ${artist.creationDate}`,
+          id: artist.id,
+        });
       }
-      artist.concerts.forEach((concert) => {
-        if (concert.displayLocation.toLowerCase().includes(needle)) {
-          matches.push({ label: concert.displayLocation, type: "Lieu", id: artist.id });
+      concerts.forEach((concert) => {
+        const locationName = (concert.displayLocation || "").toLowerCase();
+        if (!locationName) return;
+        if (locationName.includes(needle)) {
+          const dateSample = (concert.dates && concert.dates[0]) || "Dates non précisées";
+          matches.push({
+            label: concert.displayLocation,
+            type: "Lieu",
+            meta: `${artist.name} • ${dateSample}`,
+            id: artist.id,
+          });
         }
       });
     });
@@ -138,7 +203,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const fragment = document.createDocumentFragment();
     items.forEach((item) => {
       const li = document.createElement("li");
-      li.innerHTML = `<span>${item.label}</span><small>${item.type}</small>`;
+      li.innerHTML = `
+        <div class="suggestion-text">
+          <strong>${item.label}</strong>
+          <small>${item.meta || ""}</small>
+        </div>
+        <span class="suggestion-type">${item.type}</span>
+      `;
       li.addEventListener("click", () => {
         scrollToCard(item.id);
         suggestions.innerHTML = "";
@@ -173,12 +244,30 @@ document.addEventListener("DOMContentLoaded", () => {
   if (filterForm) {
     filterForm.addEventListener("submit", applyFilters);
     filterForm.addEventListener("reset", () => {
-      setTimeout(resetFilters, 0);
+      setTimeout(() => {
+        resetFilters();
+        toggleFilters(false);
+      }, 0);
     });
   }
   if (searchInput) {
     searchInput.addEventListener("input", handleSearch);
     searchInput.addEventListener("keydown", handleSearchEnter);
+  }
+
+  if (filtersOverlay) {
+    openFilterButtons.forEach((btn) => btn.addEventListener("click", () => toggleFilters(true)));
+    closeFilterButtons.forEach((btn) => btn.addEventListener("click", () => toggleFilters(false)));
+    filtersOverlay.addEventListener("click", (event) => {
+      if (event.target === filtersOverlay) {
+        toggleFilters(false);
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && filtersOverlay.classList.contains("is-visible")) {
+        toggleFilters(false);
+      }
+    });
   }
 
   renderCards(state.raw);
