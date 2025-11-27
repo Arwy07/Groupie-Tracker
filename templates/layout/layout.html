@@ -1,0 +1,123 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groupie Tracker - Carte des concerts</title>
+    <meta name="description" content="Suivez les tournées mondiales de vos artistes préférés en temps réel">
+    
+    <!-- Polices -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Feuilles de style -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-sA+4J1rYKz5Jzi10JycBvZkyoVQbLMmACG3GxZ1Zq8E=" crossorigin="">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/styles/style/style.css">
+    {{block "head" .}}{{end}}
+</head>
+<body>
+<header class="site-header">
+    <a href="/" class="logo">
+        <i class="fas fa-globe-americas"></i>
+        <span>Groupie Tracker</span>
+    </a>
+    
+    <button class="menu-toggle" data-menu-toggle aria-label="Menu" aria-expanded="false" aria-controls="main-navigation">
+        <span class="menu-icon"></span>
+    </button>
+    
+    <nav class="main-nav" id="main-navigation">
+        <a href="/" class="nav-link active">
+            <i class="fas fa-map-marked-alt"></i>
+            <span>Carte</span>
+        </a>
+        <a href="#artists" class="nav-link">
+            <i class="fas fa-users"></i>
+            <span>Artistes</span>
+        </a>
+        <a href="#concerts" class="nav-link">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Concerts</span>
+        </a>
+        <a href="#statistiques" class="nav-link">
+            <i class="fas fa-chart-line"></i>
+            <span>Statistiques</span>
+        </a>
+    </nav>
+    
+    <div class="header-actions">
+        <button id="refresh-btn" class="btn" data-endpoint="/api/refresh">
+            <i class="fas fa-sync-alt"></i>
+            <span>Actualiser</span>
+        </button>
+    </div>
+</header>
+
+<main class="main-content">
+    {{block "content" .}}{{end}}
+</main>
+
+<!-- Chargement des scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-o9N1j7kGStGZ1HFl7fLyZj6Zj1l7oO5OVw2Agnz8wY0="
+        crossorigin=""></script>
+<script src="/script/global/global.js"></script>
+{{block "pageScripts" .}}{{end}}
+
+<!-- Script d'initialisation -->
+<script>
+    // Détection du thème système
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+    
+    // Basculer entre les thèmes clair/sombre
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    }
+    
+    // Vérifier le thème sauvegardé
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+    
+    // Gestion du menu mobile
+    document.addEventListener('DOMContentLoaded', () => {
+        const menuToggle = document.querySelector('[data-menu-toggle]');
+        const nav = document.querySelector('.main-nav');
+        
+        if (menuToggle && nav) {
+            menuToggle.addEventListener('click', () => {
+                const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+                menuToggle.setAttribute('aria-expanded', !isExpanded);
+                nav.classList.toggle('active');
+                document.body.classList.toggle('menu-open');
+            });
+        }
+        
+        // Fermer le menu lors du clic sur un lien
+        document.querySelectorAll('.main-nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    menuToggle.click();
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
+{{end}}
+
+

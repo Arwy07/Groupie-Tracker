@@ -1,0 +1,769 @@
+/* Page Artiste - Styles spécifiques */
+
+/* Structure de base */
+.artist-page {
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-top: var(--header-height);
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+    position: relative;
+}
+
+/* En-tête de l'artiste */
+.artist-header {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.artist-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="white" opacity="0.05"/></svg>');
+    background-size: cover;
+    pointer-events: none;
+}
+
+.artist-header__content {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.artist-avatar {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.artist-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s var(--ease-out);
+}
+
+.artist-avatar:hover .artist-image {
+    transform: scale(1.05);
+}
+
+.artist-badges {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    justify-content: center;
+}
+
+.badge {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.artist-info {
+    flex: 1;
+}
+
+.artist-name {
+    font-size: 2.5rem;
+    margin: 0 0 0.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.artist-meta {
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.artist-members {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.member {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    backdrop-filter: blur(5px);
+    transition: all 0.2s ease;
+}
+
+.member:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    transition: all 0.2s ease;
+}
+
+.back-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(-3px);
+}
+
+/* Navigation secondaire */
+.artist-nav {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: var(--header-height);
+    z-index: 90;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.artist-nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 1.5rem;
+}
+
+.artist-nav a {
+    display: block;
+    padding: 1rem 0;
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 500;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.artist-nav a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s var(--ease-out);
+}
+
+.artist-nav a:hover,
+.artist-nav a.active {
+    color: var(--text);
+}
+
+.artist-nav a.active::after {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+/* Section header */
+.section-header {
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-header p {
+    color: var(--muted);
+    margin: 0;
+}
+
+/* Carte */
+.section-map {
+    margin-bottom: 3rem;
+}
+
+.map-container {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.map-wrapper {
+    height: 500px;
+    position: relative;
+    background: var(--bg-alt);
+}
+
+.map-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.8);
+    z-index: 10;
+    color: var(--text);
+}
+
+.map-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--accent);
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 1rem;
+}
+
+.map-legend {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1rem;
+    background: var(--bg-alt);
+    border-top: 1px solid var(--border);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Liste des concerts */
+.concerts-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.concert-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.concert-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent);
+}
+
+.concert-location {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: flex-start;
+}
+
+.concert-location i {
+    color: var(--accent);
+    font-size: 1.25rem;
+    margin-top: 0.2rem;
+}
+
+.concert-location h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+}
+
+.concert-location p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.concert-dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.date-badge {
+    background: var(--bg-alt);
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* Membres du groupe */
+.members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.member-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.member-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent);
+}
+
+.member-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--bg-alt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 2rem;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+}
+
+.member-card h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+}
+
+.member-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+/* Sidebar */
+.artist-sidebar {
+    position: sticky;
+    top: calc(var(--header-height) + 1rem);
+    align-self: start;
+    height: calc(100vh - var(--header-height) - 2rem);
+    overflow-y: auto;
+    padding-right: 1rem;
+}
+
+.sidebar-widget {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.sidebar-widget h3 {
+    margin-top: 0;
+    margin-bottom: 1.25rem;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-alt);
+    border-radius: var(--border-radius-sm);
+}
+
+.stat-item i {
+    font-size: 1.5rem;
+    color: var(--accent);
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 50%;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+/* Événements à venir */
+.upcoming-events {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.event-item {
+    display: flex;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.event-item:hover {
+    background: var(--bg-alt);
+}
+
+.event-date {
+    width: 50px;
+    height: 50px;
+    background: var(--accent);
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.event-date .day {
+    font-size: 1.25rem;
+}
+
+.event-date .month {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.event-details {
+    flex: 1;
+}
+
+.event-details h4 {
+    margin: 0 0 0.25rem;
+    font-size: 0.95rem;
+}
+
+.event-details p {
+    margin: 0 0 0.25rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.event-time {
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+/* Boutons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    border: 1px solid transparent;
+    gap: 0.5rem;
+    background: var(--accent);
+    color: white;
+}
+
+.btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-sm {
+    padding: 0.35rem 1rem;
+    font-size: 0.85rem;
+}
+
+.btn-block {
+    display: flex;
+    width: 100%;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.btn-outline:hover {
+    background: var(--bg-alt);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: none;
+}
+
+/* États vides */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--muted);
+    background: var(--bg-alt);
+    border-radius: var(--border-radius);
+    border: 1px dashed var(--border);
+}
+
+.empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+/* Animations */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+    
+    .artist-sidebar {
+        position: static;
+        height: auto;
+        margin-top: 2rem;
+        padding-right: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .artist-header__content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .artist-members {
+        justify-content: center;
+    }
+    
+    .members-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    .artist-nav ul {
+        overflow-x: auto;
+        padding: 0.5rem 0;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .artist-nav li {
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .artist-name {
+        font-size: 2rem;
+    }
+    
+    .members-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .map-wrapper {
+        height: 350px;
+    }
+}
+
+/* Styles pour la carte Leaflet */
+.leaflet-popup-content {
+    margin: 0;
+    padding: 1rem;
+    min-width: 200px;
+}
+
+.leaflet-popup-content h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    color: var(--accent);
+}
+
+.leaflet-popup-content p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+.leaflet-popup-content .concert-dates {
+    margin-top: 0.5rem;
+}
+
+.leaflet-popup-content .date-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Personnalisation du contrôle de zoom */
+.leaflet-bar {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid var(--border) !important;
+    overflow: hidden;
+    border-radius: 4px !important;
+}
+
+.leaflet-bar a {
+    background: var(--panel) !important;
+    color: var(--text) !important;
+    border-bottom: 1px solid var(--border) !important;
+    width: 30px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    font-size: 18px !important;
+    transition: all 0.2s ease;
+}
+
+.leaflet-bar a:hover {
+    background: var(--bg-alt) !important;
+    color: var(--accent) !important;
+}
+
+.leaflet-bar a:first-child {
+    border-top-left-radius: 4px !important;
+    border-top-right-radius: 4px !important;
+}
+
+.leaflet-bar a:last-child {
+    border-bottom-left-radius: 4px !important;
+    border-bottom-right-radius: 4px !important;
+    border-bottom: none !important;
+}
+
+/* Style personnalisé pour les marqueurs */
+.custom-marker {
+    width: 24px !important;
+    height: 24px !important;
+    margin-left: -12px !important;
+    margin-top: -12px !important;
+    border-radius: 50% 50% 50% 0;
+    background: var(--accent);
+    transform: rotate(-45deg);
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.custom-marker::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* Personnalisation du tooltip */
+.leaflet-tooltip {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-tooltip:before {
+    border-top-color: var(--panel);
+}
+
+.leaflet-tooltip-bottom:before {
+    border-bottom-color: var(--panel);
+}
+
+.leaflet-tooltip-left:before {
+    border-left-color: var(--panel);
+}
+
+.leaflet-tooltip-right:before {
+    border-right-color: var(--panel);
+}
