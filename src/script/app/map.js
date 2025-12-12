@@ -80,14 +80,56 @@ function initGlobalMap() {
     const bounds = [];
     const markerGroups = {}; // Grouper par artiste
     
+    // Fonction pour filtrer les dates à venir
+    function getUpcomingDates(dates) {
+        if (!dates || dates.length === 0) return [];
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const upcomingDates = [];
+        for (const dateStr of dates) {
+            try {
+                const [day, month, year] = dateStr.split('-').map(Number);
+                const fullYear = year < 100 ? 2000 + year : year;
+                const concertDate = new Date(fullYear, month - 1, day);
+                concertDate.setHours(0, 0, 0, 0);
+                
+                if (concertDate >= today) {
+                    upcomingDates.push(dateStr);
+                }
+            } catch (e) {
+                // Ignorer les dates invalides
+            }
+        }
+        
+        // Trier par date
+        upcomingDates.sort((a, b) => {
+            try {
+                const [dayA, monthA, yearA] = a.split('-').map(Number);
+                const [dayB, monthB, yearB] = b.split('-').map(Number);
+                const fullYearA = yearA < 100 ? 2000 + yearA : yearA;
+                const fullYearB = yearB < 100 ? 2000 + yearB : yearB;
+                const dateA = new Date(fullYearA, monthA - 1, dayA);
+                const dateB = new Date(fullYearB, monthB - 1, dayB);
+                return dateA - dateB;
+            } catch {
+                return 0;
+            }
+        });
+        
+        return upcomingDates;
+    }
+    
     // Fonction pour créer le contenu du popup
     function createPopupContent(concert, artistName) {
-        const datesList = concert.dates && concert.dates.length > 0
+        const upcomingDates = getUpcomingDates(concert.dates);
+        const datesList = upcomingDates.length > 0
             ? `<div class="popup-dates">
-                  <strong>Dates :</strong>
-                  <ul>${concert.dates.slice(0, 5).map(date => `<li>${date}</li>`).join('')}${concert.dates.length > 5 ? `<li>... et ${concert.dates.length - 5} autres</li>` : ''}</ul>
+                  <strong><i class="fas fa-calendar-alt"></i> Prochains concerts :</strong>
+                  <ul>${upcomingDates.slice(0, 5).map(date => `<li>${date}</li>`).join('')}${upcomingDates.length > 5 ? `<li>... et ${upcomingDates.length - 5} autre(s)</li>` : ''}</ul>
               </div>`
-            : '<p>Aucune date disponible</p>';
+            : '<p class="no-dates"><i class="fas fa-calendar-times"></i> Aucun concert à venir</p>';
         
         return `
             <div class="map-popup">
@@ -155,9 +197,15 @@ function initGlobalMap() {
     let missingCoordinatesCount = 0;
     
     console.log('Carte globale - Artistes chargés:', artists.length);
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:157',message:'Artistes chargés pour carte globale',data:{artistsCount:artists.length,artistsSample:artists.slice(0,2).map(a=>({id:a.id,name:a.name,concertsCount:a.concerts?.length||0}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H4'})}).catch(()=>{});
+    // #endregion
     
     // Fonction pour traiter un concert
     async function processConcertGlobal(concert, artist) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:160',message:'processConcertGlobal ENTRY',data:{artistId:artist.id,artistName:artist.name,concertLocation:concert.displayLocation||concert.location,hasCoordinates:!!concert.coordinates},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
         let lat, lng;
         
         // Vérifier les coordonnées existantes
@@ -171,11 +219,18 @@ function initGlobalMap() {
             }
         }
         
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:175',message:'Coordonnées avant géocodage',data:{lat:lat,lng:lng,isValid:!isNaN(lat)&&!isNaN(lng)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
+        
         // Si pas de coordonnées valides, essayer de géocoder
         if ((lat === undefined || lng === undefined || isNaN(lat) || isNaN(lng))) {
             const locationToGeocode = concert.displayLocation || concert.location;
             if (!locationToGeocode) {
                 missingCoordinatesCount++;
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:178',message:'Pas de localisation à géocoder',data:{artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+                // #endregion
                 return null;
             }
             
@@ -190,6 +245,9 @@ function initGlobalMap() {
                 concert.coordinates.lng = lng;
             } else {
                 missingCoordinatesCount++;
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:192',message:'Géocodage échoué',data:{location:locationToGeocode,artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+                // #endregion
                 return null;
             }
         }
@@ -197,11 +255,19 @@ function initGlobalMap() {
         // Vérifier que les coordonnées sont valides
         if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
             missingCoordinatesCount++;
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:199',message:'Coordonnées invalides',data:{lat:lat,lng:lng,artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+            // #endregion
             return null;
         }
         
         validLocationsCount++;
         const markerColor = getMarkerColor(concert);
+        const popupContent = createPopupContent(concert, artist.name);
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:204',message:'Création marqueur AVANT',data:{lat:lat,lng:lng,markerColor:markerColor,popupContentLength:popupContent.length,artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H5'})}).catch(()=>{});
+        // #endregion
         
         // Créer le marqueur personnalisé
         const markerIcon = L.divIcon({
@@ -213,11 +279,18 @@ function initGlobalMap() {
         });
         
         const marker = L.marker([lat, lng], {
-            icon: markerIcon
+            icon: markerIcon,
+            interactive: true,
+            keyboard: true,
+            title: artist.name + ' - ' + (concert.displayLocation || 'Lieu inconnu')
         });
         
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:216',message:'Marqueur créé',data:{markerExists:!!marker,lat:lat,lng:lng,artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H3'})}).catch(()=>{});
+        // #endregion
+        
         // Ajouter le popup
-        marker.bindPopup(createPopupContent(concert, artist.name), {
+        marker.bindPopup(popupContent, {
             maxWidth: 300,
             minWidth: 200,
             className: 'custom-popup',
@@ -226,10 +299,31 @@ function initGlobalMap() {
             closeOnClick: false
         });
         
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:227',message:'Popup lié au marqueur',data:{hasPopup:!!marker.getPopup(),artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H2'})}).catch(()=>{});
+        // #endregion
+        
+        // Ajouter événement de clic pour ouvrir le popup
+        marker.on('click', function(e) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:262',message:'Marqueur cliqué',data:{artistId:artist.id,artistName:artist.name,lat:lat,lng:lng},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H2'})}).catch(()=>{});
+            // #endregion
+            // Ouvrir le popup explicitement
+            marker.openPopup();
+        });
+        
+        // S'assurer que le marqueur est interactif
+        marker.options.interactive = true;
+        marker.options.keyboard = true;
+        
         // Ajouter le marqueur à la carte
         marker.addTo(map);
         markers.push(marker);
         bounds.push([lat, lng]);
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:238',message:'Marqueur ajouté à la carte',data:{markersCount:markers.length,boundsCount:bounds.length,artistId:artist.id,markerElement:!!marker.getElement()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H3'})}).catch(()=>{});
+        // #endregion
         
         // Grouper par artiste pour le clustering visuel
         if (!markerGroups[artist.id]) {
@@ -372,15 +466,24 @@ function initGlobalMap() {
         }
         
         console.log(`Carte globale: ${validLocationsCount} marqueurs valides, ${missingCoordinatesCount} coordonnées manquantes`);
+        console.log(`Total marqueurs dans le tableau: ${markers.length}`);
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.js:420',message:'Résumé chargement marqueurs',data:{validLocationsCount:validLocationsCount,missingCoordinatesCount:missingCoordinatesCount,markersCount:markers.length,boundsCount:bounds.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
         
         // Afficher un message si pas de marqueurs
-        if (validLocationsCount === 0) {
+        if (validLocationsCount === 0 && markers.length === 0) {
             const errorMsg = missingCoordinatesCount > 0 
                 ? `Aucune coordonnée disponible pour le moment. ${missingCoordinatesCount} localisation(s) sans coordonnées. Les coordonnées sont géocodées automatiquement lors de la visite des pages artistes individuelles.`
                 : 'Aucune localisation valide trouvée. Les coordonnées seront chargées lors de la visite des pages artistes.';
             showMapError(errorMsg);
         } else {
             console.log(`✅ Carte chargée avec succès: ${validLocationsCount} marqueurs affichés`);
+            // Forcer la mise à jour de la vue pour s'assurer que les marqueurs sont visibles
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 10 });
+            }
         }
     }
     
@@ -472,6 +575,8 @@ function initGlobalMap() {
             height: 42px;
             cursor: pointer;
             transition: all 0.2s ease;
+            pointer-events: auto !important;
+            z-index: 100 !important;
         }
         
         .marker-pin {
@@ -483,6 +588,7 @@ function initGlobalMap() {
             left: 0;
             top: 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            pointer-events: auto !important;
         }
         
         .custom-marker.upcoming .marker-pin {

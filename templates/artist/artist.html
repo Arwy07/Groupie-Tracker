@@ -95,10 +95,6 @@
                 
                 <div class="concerts-list" id="upcoming-concerts-list">
                     <!-- Les concerts seront chargés dynamiquement par JavaScript -->
-                    <div class="loading-concerts">
-                        <div class="spinner"></div>
-                        <p>Chargement des prochains concerts...</p>
-                    </div>
                 </div>
             </section>
             
@@ -130,8 +126,15 @@
         <!-- Sidebar -->
         <aside class="artist-sidebar">
             <div class="sidebar-widget">
-                <h3>Statistiques</h3>
+                <h3><i class="fas fa-chart-line"></i> Statistiques</h3>
                 <div class="stats-grid">
+                    <div class="stat-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div>
+                            <span class="stat-value" id="quick-upcoming-count">-</span>
+                            <span class="stat-label">Concerts à venir</span>
+                        </div>
+                    </div>
                     <div class="stat-item">
                         <i class="fas fa-music"></i>
                         <div>
@@ -163,26 +166,6 @@
                                 {{len $locations}}
                             </span>
                             <span class="stat-label">Lieux uniques</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="sidebar-widget">
-                <h3>Statistiques rapides</h3>
-                <div class="quick-stats">
-                    <div class="quick-stat-item">
-                        <i class="fas fa-calendar-alt"></i>
-                        <div>
-                            <span class="quick-stat-value" id="quick-upcoming-count">-</span>
-                            <span class="quick-stat-label">Concerts à venir</span>
-                        </div>
-                    </div>
-                    <div class="quick-stat-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <div>
-                            <span class="quick-stat-value">{{len .Artist.Concerts}}</span>
-                            <span class="quick-stat-label">Lieux visités</span>
                         </div>
                     </div>
                 </div>
@@ -333,8 +316,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Ajouter les event listeners pour les cartes de membres après un court délai
     setTimeout(() => {
-        setupMemberCards();
-    }, 200);
+        if (typeof setupMemberCards === 'function') {
+            setupMemberCards();
+        } else {
+            console.error('Fonction setupMemberCards non disponible');
+        }
+    }, 300);
 });
 
 // Fonction pour configurer les cartes de membres
@@ -395,24 +382,52 @@ function loadUpcomingConcerts() {
     }
     
     console.log(`Traitement de ${artist.concerts.length} concerts...`);
+    console.log('Données des concerts:', artist.concerts);
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    console.log('Date d\'aujourd\'hui:', today);
     
     const upcomingConcerts = [];
+    let totalDatesChecked = 0;
+    let datesParsed = 0;
+    let datesInFuture = 0;
     
     // Filtrer les concerts à venir
-    artist.concerts.forEach(concert => {
-        if (!concert.dates || concert.dates.length === 0) return;
+    artist.concerts.forEach((concert, concertIndex) => {
+        if (!concert.dates || concert.dates.length === 0) {
+            console.log(`Concert ${concertIndex}: pas de dates`, concert);
+            return;
+        }
+        
+        console.log(`Concert ${concertIndex}: ${concert.dates.length} dates`, concert.displayLocation || concert.location);
         
         concert.dates.forEach(dateStr => {
+            totalDatesChecked++;
             try {
-                const [day, month, year] = dateStr.split('-').map(Number);
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) {
+                    console.warn(`Format de date invalide (pas 3 parties): ${dateStr}`);
+                    return;
+                }
+                
+                const [day, month, year] = parts.map(Number);
+                
+                if (isNaN(day) || isNaN(month) || isNaN(year)) {
+                    console.warn(`Date contient des NaN: ${dateStr}`, {day, month, year});
+                    return;
+                }
+                
                 const fullYear = year < 100 ? 2000 + year : year;
                 const concertDate = new Date(fullYear, month - 1, day);
                 concertDate.setHours(0, 0, 0, 0);
                 
+                datesParsed++;
+                
+                console.log(`Date analysée: ${dateStr} -> ${concertDate.toISOString()}, Comparaison: ${concertDate >= today ? 'FUTUR' : 'PASSÉ'}`);
+                
                 if (concertDate >= today) {
+                    datesInFuture++;
                     upcomingConcerts.push({
                         ...concert,
                         date: dateStr,
@@ -425,6 +440,7 @@ function loadUpcomingConcerts() {
         });
     });
     
+    console.log(`Résumé: ${totalDatesChecked} dates vérifiées, ${datesParsed} parsées, ${datesInFuture} dans le futur`);
     console.log(`${upcomingConcerts.length} concerts à venir trouvés`);
     
     // Trier par date
@@ -436,24 +452,148 @@ function loadUpcomingConcerts() {
         return;
     }
     
-    if (upcomingConcerts.length === 0) {
-        concertsList.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-calendar-times"></i>
-                <p>Aucun concert à venir pour le moment</p>
-            </div>
-        `;
-        return;
-    }
+    // Afficher un message de chargement
+    concertsList.innerHTML = `
+        <div class="loading-concerts">
+            <div class="spinner"></div>
+            <p>Chargement des prochains concerts...</p>
+        </div>
+    `;
     
-    // Mettre à jour le compteur dans la sidebar
-    const quickCount = document.getElementById('quick-upcoming-count');
-    if (quickCount) {
-        quickCount.textContent = upcomingConcerts.length;
-    }
-    
-    // Afficher les concerts avec un design amélioré
-    concertsList.innerHTML = upcomingConcerts.map((concert, index) => {
+    // Attendre un peu pour l'animation
+    setTimeout(() => {
+        // Si aucun concert à venir, afficher tous les concerts (passés inclus) triés par date
+        if (upcomingConcerts.length === 0) {
+            console.log('Aucun concert à venir, affichage de tous les concerts...');
+            const allConcerts = [];
+            
+            artist.concerts.forEach(concert => {
+                if (!concert.dates || concert.dates.length === 0) return;
+                
+                concert.dates.forEach(dateStr => {
+                    try {
+                        const [day, month, year] = dateStr.split('-').map(Number);
+                        const fullYear = year < 100 ? 2000 + year : year;
+                        const concertDate = new Date(fullYear, month - 1, day);
+                        concertDate.setHours(0, 0, 0, 0);
+                        
+                        allConcerts.push({
+                            ...concert,
+                            date: dateStr,
+                            concertDate: concertDate
+                        });
+                    } catch (e) {
+                        console.warn('Erreur de parsing de date:', dateStr, e);
+                    }
+                });
+            });
+            
+            // Trier par date (plus récent en premier)
+            allConcerts.sort((a, b) => b.concertDate - a.concertDate);
+            
+            if (allConcerts.length === 0) {
+                concertsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>Aucun concert trouvé pour cet artiste</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Utiliser tous les concerts comme concerts à afficher
+            const concertsToDisplay = allConcerts.slice(0, 10); // Limiter à 10 plus récents
+            
+            // Mettre à jour le compteur
+            const quickCount = document.getElementById('quick-upcoming-count');
+            if (quickCount) {
+                quickCount.textContent = concertsToDisplay.length;
+            }
+            
+            // Afficher les concerts
+            concertsList.innerHTML = concertsToDisplay.map((concert, index) => {
+                const dateFormatted = formatConcertDate(concert.date);
+                const time = generateRandomTime();
+                const price = generateRandomPrice();
+                
+                const locationParts = (concert.displayLocation || concert.location || '').split(',');
+                const city = locationParts.length > 1 ? locationParts[locationParts.length - 2].trim() : '';
+                const country = locationParts.length > 0 ? locationParts[locationParts.length - 1].trim() : '';
+                
+                const [day, month, year] = concert.date.split('-').map(Number);
+                const fullYear = year < 100 ? 2000 + year : year;
+                const dateObj = new Date(fullYear, month - 1, day);
+                const monthsShort = ['JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUN', 'JUL', 'AOÛ', 'SEP', 'OCT', 'NOV', 'DÉC'];
+                const dayNum = day.toString().padStart(2, '0');
+                const monthShort = monthsShort[month - 1];
+                
+                const concertData = {
+                    location: concert.displayLocation || concert.location,
+                    city: city || '',
+                    country: country || '',
+                    date: concert.date,
+                    dateFormatted: dateFormatted,
+                    time: time,
+                    price: price,
+                    allDates: concert.dates || [],
+                    coordinates: concert.coordinates || null,
+                    artistName: window.__ARTIST ? window.__ARTIST.name : '',
+                    artistImage: window.__ARTIST ? window.__ARTIST.image : ''
+                };
+                
+                const concertDataEncoded = JSON.stringify(concertData).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                
+                return `
+                    <div class="concert-card-enhanced" data-concert-index="${index}" data-concert-data="${concertDataEncoded}" style="cursor: pointer;" role="button" tabindex="0" aria-label="Réserver pour ${concert.displayLocation || concert.location} le ${dateFormatted}">
+                        <div class="concert-date-badge">
+                            <span class="date-day">${dayNum}</span>
+                            <span class="date-month">${monthShort}</span>
+                        </div>
+                        <div class="concert-main-info">
+                            <div class="concert-header-info">
+                                <h3 class="concert-venue">${concert.displayLocation || concert.location}</h3>
+                                ${city || country ? `<p class="concert-location-detail">${city}${city && country ? ', ' : ''}${country}</p>` : ''}
+                            </div>
+                            <div class="concert-details-grid">
+                                <div class="concert-detail-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>${time}</span>
+                                </div>
+                                <div class="concert-detail-item">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    <span>À partir de ${price}€</span>
+                                </div>
+                                <div class="concert-detail-item">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>${dateFormatted}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="concert-action-icon">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Configurer les cartes
+            setTimeout(() => {
+                if (typeof setupConcertCards === 'function') {
+                    setupConcertCards();
+                }
+            }, 100);
+            
+            return;
+        }
+        
+        // Mettre à jour le compteur dans la sidebar
+        const quickCount = document.getElementById('quick-upcoming-count');
+        if (quickCount) {
+            quickCount.textContent = upcomingConcerts.length;
+        }
+        
+        // Afficher les concerts avec un design amélioré
+        concertsList.innerHTML = upcomingConcerts.map((concert, index) => {
         const dateFormatted = formatConcertDate(concert.date);
         const time = generateRandomTime();
         const price = generateRandomPrice();
@@ -494,7 +634,7 @@ function loadUpcomingConcerts() {
         const concertDataEncoded = JSON.stringify(concertData).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
         
         return `
-            <div class="concert-card-enhanced" data-concert-index="${index}" data-concert-data="${concertDataEncoded}" style="cursor: pointer;">
+            <div class="concert-card-enhanced" data-concert-index="${index}" data-concert-data="${concertDataEncoded}" style="cursor: pointer;" role="button" tabindex="0" aria-label="Réserver pour ${concert.displayLocation || concert.location} le ${dateFormatted}">
                 <div class="concert-date-badge">
                     <span class="date-day">${dayNum}</span>
                     <span class="date-month">${monthShort}</span>
@@ -515,7 +655,7 @@ function loadUpcomingConcerts() {
                         </div>
                         <div class="concert-detail-item">
                             <i class="fas fa-calendar-check"></i>
-                            <span>${concert.dates ? concert.dates.length : 1} date${(concert.dates && concert.dates.length > 1) ? 's' : ''}</span>
+                            <span>${dateFormatted}</span>
                         </div>
                     </div>
                 </div>
@@ -524,12 +664,17 @@ function loadUpcomingConcerts() {
                 </div>
             </div>
         `;
-    }).join('');
-    
-    // Attendre un peu pour que le DOM soit complètement mis à jour
-    setTimeout(() => {
-        setupConcertCards();
-    }, 100);
+        }).join('');
+        
+        // Attendre un peu pour que le DOM soit complètement mis à jour
+        setTimeout(() => {
+            if (typeof setupConcertCards === 'function') {
+                setupConcertCards();
+            } else {
+                console.error('Fonction setupConcertCards non disponible');
+            }
+        }, 100);
+    }, 300);
 }
 
 // Fonction pour configurer les cartes de concerts
@@ -538,7 +683,8 @@ function setupConcertCards() {
     
     // Rendre toute la carte cliquable pour ouvrir le modal de réservation
     document.querySelectorAll('.concert-card-enhanced').forEach(card => {
-        card.addEventListener('click', function(e) {
+        // Gestionnaire de clic
+        const handleClick = function(e) {
             e.preventDefault();
             e.stopPropagation();
             try {
@@ -560,7 +706,22 @@ function setupConcertCards() {
             } catch (error) {
                 console.error('Erreur lors de l\'ouverture du modal:', error);
             }
+        };
+        
+        // Ajouter l'événement de clic
+        card.addEventListener('click', handleClick);
+        
+        // Ajouter le support du clavier (Entrée et Espace)
+        card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleClick.call(this, e);
+            }
         });
+        
+        // Améliorer le style pour montrer que c'est cliquable
+        card.style.transition = 'all 0.3s ease';
+        card.style.userSelect = 'none';
     });
     
     console.log(`✅ ${document.querySelectorAll('.concert-card-enhanced').length} cartes de concerts configurées`);

@@ -333,6 +333,20 @@
 .concerts-list {
     display: grid;
     gap: 1.5rem;
+    width: 100%;
+    min-height: 200px;
+}
+
+.concerts-list:empty::before {
+    content: 'Chargement...';
+    display: block;
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+}
+
+.concerts-list .loading-concerts {
+    grid-column: 1 / -1;
 }
 
 .concert-card-enhanced {
@@ -342,10 +356,13 @@
     padding: 0;
     transition: all 0.3s ease;
     display: flex;
-    align-items: center;
-    gap: 1.5rem;
+    align-items: stretch;
+    gap: 0;
     overflow: hidden;
     position: relative;
+    min-height: 120px;
+    width: 100%;
+    cursor: pointer;
 }
 
 .concert-card-enhanced::before {
@@ -371,17 +388,16 @@
 }
 
 .concert-date-badge {
-    width: 100px;
-    min-width: 100px;
-    height: 100px;
+    width: 120px;
+    min-width: 120px;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     color: white;
-    border-radius: var(--border-radius) 0 0 var(--border-radius);
     flex-shrink: 0;
+    padding: 1.5rem 1rem;
 }
 
 .concert-date-badge .date-day {
@@ -400,10 +416,13 @@
 
 .concert-main-info {
     flex: 1;
-    padding: 1.5rem 0;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    justify-content: center;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .concert-header-info {
@@ -417,6 +436,8 @@
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--text);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .concert-location-detail {
@@ -427,8 +448,9 @@
 
 .concert-details-grid {
     display: flex;
-    gap: 2rem;
+    gap: 1.5rem;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .concert-detail-item {
@@ -446,9 +468,8 @@
 }
 
 .concert-action-icon {
-    width: 60px;
-    min-width: 60px;
-    height: 100%;
+    width: 80px;
+    min-width: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -457,6 +478,8 @@
     transition: all 0.3s ease;
     background: var(--bg-alt);
     border-left: 1px solid var(--border);
+    padding: 0 1rem;
+    flex-shrink: 0;
 }
 
 .concert-card-enhanced:hover .concert-action-icon {
@@ -698,52 +721,6 @@
     gap: 0.5rem;
 }
 
-.quick-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.quick-stat-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: var(--bg-alt);
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition);
-}
-
-.quick-stat-item:hover {
-    background: rgba(168, 85, 247, 0.1);
-    border: 1px solid var(--accent);
-}
-
-.quick-stat-item i {
-    font-size: 1.5rem;
-    color: var(--accent);
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(168, 85, 247, 0.1);
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.quick-stat-value {
-    display: block;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text);
-}
-
-.quick-stat-label {
-    display: block;
-    font-size: 0.85rem;
-    color: var(--muted);
-}
 
 .stats-grid {
     display: grid;
@@ -1153,7 +1130,7 @@
 .booking-modal-content {
     position: relative;
     background: var(--panel);
-    border-radius: var(--border-radius-lg);
+    border-radius: var(--border-radius);
     max-width: 800px;
     width: 100%;
     max-height: 90vh;
@@ -1520,7 +1497,7 @@
     gap: 1rem;
     justify-content: flex-end;
     background: var(--bg-alt);
-    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
 }
 
 .booking-footer .btn {
@@ -1630,7 +1607,7 @@
 .member-modal-content {
     position: relative;
     background: var(--panel);
-    border-radius: var(--border-radius-lg);
+    border-radius: var(--border-radius);
     max-width: 700px;
     width: 100%;
     max-height: 90vh;
@@ -1826,7 +1803,7 @@
     display: flex;
     justify-content: flex-end;
     background: var(--bg-alt);
-    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
 }
 
 .member-modal-footer .btn {

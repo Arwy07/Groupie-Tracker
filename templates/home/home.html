@@ -4,45 +4,65 @@
 
 {{define "content"}}
 <section class="hero hero--full">
-    <div class="hero__text">
-        <p class="eyebrow">Cartographie live</p>
-        <h1>Suivre les tournées sans bruit visuel</h1>
-        <p class="lede">
-            L’interface regroupe filtres avancés, recherche intelligente et fiches détaillées.
-            Tout est rafraîchi côté serveur pour rester fiable quelles que soient les datas.
-        </p>
-        <div class="hero__cta">
-            <button type="button" class="primary-btn" data-open-filters>Configurer les filtres</button>
-            <a class="ghost-btn" href="#artists-panel">Voir la galerie</a>
+    <div class="hero__content">
+        <div class="hero__text">
+            <div class="hero__badge">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Cartographie live</span>
+            </div>
+            <h1>Découvrez les tournées musicales en temps réel</h1>
+            <p class="lede">
+                Explorez les concerts de vos artistes préférés avec une interface intuitive. 
+                Filtrez, recherchez et visualisez toutes les dates sur une carte interactive.
+            </p>
+            <div class="hero__cta">
+                <button type="button" class="primary-btn btn-modern" data-open-filters>
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Configurer les filtres</span>
+                </button>
+                <a class="ghost-btn btn-modern" href="#artists-panel">
+                    <i class="fas fa-images"></i>
+                    <span>Voir la galerie</span>
+                </a>
+            </div>
         </div>
-        <dl class="hero__metrics">
-            <div>
-                <dt>Créations couvertes</dt>
-                <dd>{{.FilterMeta.CreationMin}} – {{.FilterMeta.CreationMax}}</dd>
+        <div class="hero__metrics">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Créations couvertes</dt>
+                    <dd>{{.FilterMeta.CreationMin}} – {{.FilterMeta.CreationMax}}</dd>
+                </div>
             </div>
-            <div>
-                <dt>Premiers albums</dt>
-                <dd>{{.FilterMeta.AlbumMin}} – {{.FilterMeta.AlbumMax}}</dd>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-compact-disc"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Premiers albums</dt>
+                    <dd>{{.FilterMeta.AlbumMin}} – {{.FilterMeta.AlbumMax}}</dd>
+                </div>
             </div>
-            <div>
-                <dt>Villes suivies</dt>
-                <dd>{{len .FilterMeta.Locations}}</dd>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Villes suivies</dt>
+                    <dd>{{len .FilterMeta.Locations}}</dd>
+                </div>
             </div>
-        </dl>
-    </div>
-    <div class="hero__visual">
-        <div class="hero__orbit">
-            <div class="hero__orbit-track"></div>
-            <div class="hero__orbit-glow"></div>
-        </div>
-        <div class="hero__card">
-            <p>API Groupie Tracker</p>
-            <h3>Flux live monitoré</h3>
-            <ul>
-                <li>Go + Leaflet + cache maison</li>
-                <li>Suggestions multi sources</li>
-                <li>Cartes artistes enrichies</li>
-            </ul>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Artistes</dt>
+                    <dd id="total-artists-count">{{len .FilterMeta.Locations}}</dd>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -83,11 +103,23 @@
         <p>On ouvre le tiroir uniquement quand on en a besoin. Les badges résument l’état actuel.</p>
     </div>
     <div class="control-panel__actions">
-        <button type="button" class="primary-btn" data-open-filters>Ouvrir le tiroir</button>
+        <button type="button" class="primary-btn btn-modern" data-open-filters>
+            <i class="fas fa-filter"></i>
+            <span>Ouvrir les filtres</span>
+        </button>
         <div class="control-panel__badges">
-            <span>{{.FilterMeta.CreationMin}} - {{.FilterMeta.CreationMax}} création</span>
-            <span>{{.FilterMeta.MembersMin}} - {{.FilterMeta.MembersMax}} membres</span>
-            <span>{{len .FilterMeta.Locations}} lieux possibles</span>
+            <span class="badge-item">
+                <i class="fas fa-calendar"></i>
+                {{.FilterMeta.CreationMin}} - {{.FilterMeta.CreationMax}} création
+            </span>
+            <span class="badge-item">
+                <i class="fas fa-users"></i>
+                {{.FilterMeta.MembersMin}} - {{.FilterMeta.MembersMax}} membres
+            </span>
+            <span class="badge-item">
+                <i class="fas fa-map-marker-alt"></i>
+                {{len .FilterMeta.Locations}} lieux
+            </span>
         </div>
     </div>
 </section>
@@ -175,7 +207,10 @@
             <h2>Grille pilotée par les filtres</h2>
             <p>Chaque carte se met à jour instantanément après une requête Go.</p>
         </div>
-        <button class="ghost-btn" type="button" data-open-filters>Modifier les filtres</button>
+        <button class="ghost-btn btn-modern" type="button" data-open-filters>
+            <i class="fas fa-edit"></i>
+            <span>Modifier les filtres</span>
+        </button>
     </div>
     <div id="artists" class="card-gallery"></div>
 </section>
@@ -275,6 +310,14 @@ tableauAvecTousLesArtistes.push(`{{"{{"}} . {{"}}"}}`)
 {{define "pageScripts"}}
 <script>
 window.__ARTISTS = {{.ArtistsJSON}};
+// Mettre à jour le nombre d'artistes
+document.addEventListener('DOMContentLoaded', function() {
+    const artistsCount = window.__ARTISTS ? window.__ARTISTS.length : 0;
+    const countElement = document.getElementById('total-artists-count');
+    if (countElement && artistsCount > 0) {
+        countElement.textContent = artistsCount + ' groupes';
+    }
+});
 </script>
 <script src="/script/app/app.js" defer></script>
 <script src="/script/app/map.js" defer></script>

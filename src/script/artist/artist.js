@@ -65,14 +65,56 @@ function initArtistMap() {
     const bounds = [];
     let hasValidLocations = false;
     
+    // Fonction pour filtrer les dates à venir
+    function getUpcomingDates(dates) {
+        if (!dates || dates.length === 0) return [];
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const upcomingDates = [];
+        for (const dateStr of dates) {
+            try {
+                const [day, month, year] = dateStr.split('-').map(Number);
+                const fullYear = year < 100 ? 2000 + year : year;
+                const concertDate = new Date(fullYear, month - 1, day);
+                concertDate.setHours(0, 0, 0, 0);
+                
+                if (concertDate >= today) {
+                    upcomingDates.push(dateStr);
+                }
+            } catch (e) {
+                // Ignorer les dates invalides
+            }
+        }
+        
+        // Trier par date
+        upcomingDates.sort((a, b) => {
+            try {
+                const [dayA, monthA, yearA] = a.split('-').map(Number);
+                const [dayB, monthB, yearB] = b.split('-').map(Number);
+                const fullYearA = yearA < 100 ? 2000 + yearA : yearA;
+                const fullYearB = yearB < 100 ? 2000 + yearB : yearB;
+                const dateA = new Date(fullYearA, monthA - 1, dayA);
+                const dateB = new Date(fullYearB, monthB - 1, dayB);
+                return dateA - dateB;
+            } catch {
+                return 0;
+            }
+        });
+        
+        return upcomingDates;
+    }
+    
     // Fonction pour créer le contenu du popup
     function createPopupContent(concert) {
-        const datesList = concert.dates && concert.dates.length > 0
+        const upcomingDates = getUpcomingDates(concert.dates);
+        const datesList = upcomingDates.length > 0
             ? `<div class="popup-dates">
-                  <strong>Dates :</strong>
-                  <ul>${concert.dates.map(date => `<li>${date}</li>`).join('')}</ul>
+                  <strong><i class="fas fa-calendar-alt"></i> Prochains concerts :</strong>
+                  <ul>${upcomingDates.map(date => `<li>${date}</li>`).join('')}</ul>
               </div>`
-            : '<p>Aucune date disponible</p>';
+            : '<p class="no-dates"><i class="fas fa-calendar-times"></i> Aucun concert à venir</p>';
         
         return `
             <div class="map-popup">

@@ -79,14 +79,56 @@ function initConcertsMap() {
     const markers = [];
     const bounds = [];
     
+    // Fonction pour filtrer les dates à venir
+    function getUpcomingDates(dates) {
+        if (!dates || dates.length === 0) return [];
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const upcomingDates = [];
+        for (const dateStr of dates) {
+            try {
+                const [day, month, year] = dateStr.split('-').map(Number);
+                const fullYear = year < 100 ? 2000 + year : year;
+                const concertDate = new Date(fullYear, month - 1, day);
+                concertDate.setHours(0, 0, 0, 0);
+                
+                if (concertDate >= today) {
+                    upcomingDates.push(dateStr);
+                }
+            } catch (e) {
+                // Ignorer les dates invalides
+            }
+        }
+        
+        // Trier par date
+        upcomingDates.sort((a, b) => {
+            try {
+                const [dayA, monthA, yearA] = a.split('-').map(Number);
+                const [dayB, monthB, yearB] = b.split('-').map(Number);
+                const fullYearA = yearA < 100 ? 2000 + yearA : yearA;
+                const fullYearB = yearB < 100 ? 2000 + yearB : yearB;
+                const dateA = new Date(fullYearA, monthA - 1, dayA);
+                const dateB = new Date(fullYearB, monthB - 1, dayB);
+                return dateA - dateB;
+            } catch {
+                return 0;
+            }
+        });
+        
+        return upcomingDates;
+    }
+    
     // Fonction pour créer le contenu du popup détaillé
     function createDetailedPopup(concert, artist) {
-        const datesList = concert.dates && concert.dates.length > 0
+        const upcomingDates = getUpcomingDates(concert.dates);
+        const datesList = upcomingDates.length > 0
             ? `<div class="popup-dates">
-                  <strong><i class="fas fa-calendar-alt"></i> Dates de concert :</strong>
-                  <ul>${concert.dates.map(date => `<li>${date}</li>`).join('')}</ul>
+                  <strong><i class="fas fa-calendar-alt"></i> Prochains concerts :</strong>
+                  <ul>${upcomingDates.map(date => `<li>${date}</li>`).join('')}</ul>
               </div>`
-            : '<p class="no-dates">Aucune date disponible</p>';
+            : '<p class="no-dates"><i class="fas fa-calendar-times"></i> Aucun concert à venir</p>';
         
         const membersList = artist.members && artist.members.length > 0
             ? `<div class="popup-members">
@@ -181,6 +223,9 @@ function initConcertsMap() {
     let missingCoordinatesCount = 0;
     
     console.log('Artistes chargés:', artists.length);
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'concerts-map.js:179',message:'Artistes chargés pour carte concerts',data:{artistsCount:artists.length,artistsSample:artists.slice(0,2).map(a=>({id:a.id,name:a.name,concertsCount:a.concerts?.length||0}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H4'})}).catch(()=>{});
+    // #endregion
     
     // Fonction pour géocoder une localisation via notre API backend
     async function geocodeLocation(location) {
@@ -217,6 +262,9 @@ function initConcertsMap() {
     
     // Fonction pour traiter un concert
     async function processConcert(concert, artist) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'concerts-map.js:219',message:'processConcert ENTRY',data:{artistId:artist.id,artistName:artist.name,concertLocation:concert.displayLocation||concert.location,hasCoordinates:!!concert.coordinates},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
         // Vérifier les coordonnées avec les deux formats possibles
         let lat, lng;
         
@@ -230,11 +278,18 @@ function initConcertsMap() {
             }
         }
         
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'concerts-map.js:234',message:'Coordonnées avant géocodage concerts',data:{lat:lat,lng:lng,isValid:!isNaN(lat)&&!isNaN(lng)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
+        
         // Si pas de coordonnées valides, essayer de géocoder
         if ((lat === undefined || lng === undefined || isNaN(lat) || isNaN(lng))) {
             const locationToGeocode = concert.displayLocation || concert.location;
             if (!locationToGeocode) {
                 missingCoordinatesCount++;
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'concerts-map.js:237',message:'Pas de localisation à géocoder concerts',data:{artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+                // #endregion
                 return null;
             }
             
@@ -251,6 +306,9 @@ function initConcertsMap() {
                 concert.coordinates.lng = lng;
             } else {
                 missingCoordinatesCount++;
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'concerts-map.js:253',message:'Géocodage échoué concerts',data:{location:locationToGeocode,artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+                // #endregion
                 return null; // Impossible de géocoder
             }
         }
@@ -258,22 +316,37 @@ function initConcertsMap() {
         // Vérifier que les coordonnées sont valides
         if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
             missingCoordinatesCount++;
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'concerts-map.js:260',message:'Coordonnées invalides concerts',data:{lat:lat,lng:lng,artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+            // #endregion
             return null;
         }
         
         validLocationsCount++;
         const markerColor = getMarkerColor(concert);
         const isUpcoming = markerColor === 'upcoming';
+        const popupContent = createDetailedPopup(concert, artist);
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'concerts-map.js:265',message:'Création marqueur concerts AVANT',data:{lat:lat,lng:lng,markerColor:markerColor,popupContentLength:popupContent.length,artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H5'})}).catch(()=>{});
+        // #endregion
         
         // Créer le marqueur avec photo
         const markerIcon = createMarkerIcon(artist, isUpcoming);
         
         const marker = L.marker([lat, lng], {
-            icon: markerIcon
+            icon: markerIcon,
+            interactive: true,
+            keyboard: true,
+            title: artist.name + ' - ' + (concert.displayLocation || 'Lieu inconnu')
         });
         
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'concerts-map.js:272',message:'Marqueur créé concerts',data:{markerExists:!!marker,lat:lat,lng:lng,artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H3'})}).catch(()=>{});
+        // #endregion
+        
         // Ajouter le popup détaillé
-        marker.bindPopup(createDetailedPopup(concert, artist), {
+        marker.bindPopup(popupContent, {
             maxWidth: 400,
             minWidth: 300,
             className: 'concert-popup-wrapper',
@@ -282,10 +355,31 @@ function initConcertsMap() {
             closeOnClick: false
         });
         
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'concerts-map.js:283',message:'Popup lié au marqueur concerts',data:{hasPopup:!!marker.getPopup(),artistId:artist.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H2'})}).catch(()=>{});
+        // #endregion
+        
+        // Ajouter événement de clic pour ouvrir le popup
+        marker.on('click', function(e) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'concerts-map.js:286',message:'Marqueur cliqué concerts',data:{artistId:artist.id,artistName:artist.name,lat:lat,lng:lng},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H2'})}).catch(()=>{});
+            // #endregion
+            // Ouvrir le popup explicitement
+            marker.openPopup();
+        });
+        
+        // S'assurer que le marqueur est interactif
+        marker.options.interactive = true;
+        marker.options.keyboard = true;
+        
         // Ajouter le marqueur à la carte
         marker.addTo(map);
         markers.push(marker);
         bounds.push([lat, lng]);
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/21d1d343-8a4c-4009-9c49-2a252ad5fa11',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'concerts-map.js:308',message:'Marqueur ajouté à la carte concerts',data:{markersCount:markers.length,boundsCount:bounds.length,artistId:artist.id,markerElement:!!marker.getElement()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H3'})}).catch(()=>{});
+        // #endregion
         
         // Animation au survol
         marker.on('mouseover', function() {
@@ -529,6 +623,8 @@ function initConcertsMap() {
             height: 60px;
             cursor: pointer;
             transition: all 0.3s ease;
+            pointer-events: auto !important;
+            z-index: 100 !important;
         }
         
         .marker-photo-container {
