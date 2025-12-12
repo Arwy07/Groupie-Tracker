@@ -18,7 +18,7 @@ func SetupRoutes() (http.Handler, error) {
 	// Initialisation des handlers
 	homeHandler := NewHomeHandler(app.DataService, app.Templates)
 	artistHandler := NewArtistHandler(app.DataService, app.GeocodeService, app.Templates)
-	apiHandler := NewAPIHandler(app.DataService)
+	apiHandler := NewAPIHandler(app.DataService, app.GeocodeService)
 
 	// Configuration des routes
 	mux := http.NewServeMux()
@@ -29,6 +29,7 @@ func SetupRoutes() (http.Handler, error) {
 	mux.HandleFunc("/api/artists", apiHandler.HandleArtists)
 	mux.HandleFunc("/api/filter", apiHandler.HandleFilter)
 	mux.HandleFunc("/api/refresh", apiHandler.HandleRefresh)
+	mux.HandleFunc("/api/geocode", apiHandler.HandleGeocode)
 
 	return middleware.LoggingMiddleware(mux), nil
 }

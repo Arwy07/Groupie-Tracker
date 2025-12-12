@@ -2,22 +2,27 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
+	"groupie/src/api"
 	"groupie/src/game"
 	"groupie/src/support/utils"
 )
 
 // APIHandler gère les endpoints API
 type APIHandler struct {
-	DataService *game.DataService
+	DataService    *game.DataService
+	GeocodeService *api.GeocodeService
 }
 
 // NewAPIHandler crée un nouveau gestionnaire API
-func NewAPIHandler(dataService *game.DataService) *APIHandler {
+func NewAPIHandler(dataService *game.DataService, geocodeService *api.GeocodeService) *APIHandler {
 	return &APIHandler{
-		DataService: dataService,
+		DataService:    dataService,
+		GeocodeService: geocodeService,
 	}
 }
 
@@ -45,6 +50,34 @@ func (h *APIHandler) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.RespondJSON(w, map[string]string{"status": "ok"})
+}
+
+// HandleGeocode gère GET /api/geocode?location=...
+func (h *APIHandler) HandleGeocode(w http.ResponseWriter, r *http.Request) {
+	location := r.URL.Query().Get("location")
+	if location == "" {
+		utils.RespondError(w, http.StatusBadRequest, "paramètre 'location' manquant")
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	coords, err := h.GeocodeService.LookupCoordinates(ctx, location)
+	if err != nil {
+		// Essayer avec le format brut si le format affiché échoue
+		rawLocation := strings.ReplaceAll(location, "-", " ")
+		coords, err = h.GeocodeService.LookupCoordinates(ctx, rawLocation)
+		if err != nil {
+			utils.RespondError(w, http.StatusNotFound, fmt.Sprintf("impossible de géocoder: %v", err))
+			return
+		}
+	}
+
+	utils.RespondJSON(w, map[string]interface{}{
+		"lat": coords.Latitude,
+		"lng": coords.Longitude,
+	})
 }
 
 

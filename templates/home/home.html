@@ -47,6 +47,35 @@
     </div>
 </section>
 
+<section id="map" class="map-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Carte mondiale</p>
+            <h2>Visualisez tous les concerts sur la carte</h2>
+            <p>Explorez les lieux de concert de tous les artistes en un coup d'œil.</p>
+        </div>
+    </div>
+    <div class="map-container-global">
+        <div id="global-map" class="map-wrapper-global">
+            <div class="map-loading">
+                <div class="spinner"></div>
+                <p>Chargement de la carte...</p>
+                <div class="loading-progress" style="margin-top: 1rem; font-size: 0.9rem; color: var(--muted);"></div>
+            </div>
+        </div>
+        <div class="map-legend">
+            <div class="legend-item">
+                <span class="legend-color" style="background: linear-gradient(135deg, var(--accent), var(--accent-2));"></span>
+                <span>Concerts à venir</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: var(--muted);"></span>
+                <span>Concerts passés</span>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section id="filters" class="control-panel">
     <div class="control-panel__copy">
         <p class="eyebrow">Console</p>
@@ -151,22 +180,60 @@
     <div id="artists" class="card-gallery"></div>
 </section>
 
-<section id="insights" class="insight-grid">
-    <article class="insight-card">
-        <p class="eyebrow">Instantané</p>
-        <h3 id="total-artists">0 artiste visible</h3>
-        <p>Le compteur affiche exactement ce qui est rendu dans la grille.</p>
-    </article>
-    <article class="insight-card">
-        <p class="eyebrow">Cartographie</p>
-        <h3>Leaflet embarqué</h3>
-        <p>Chaque fiche charge les concerts sur carte avec clustering natif.</p>
-    </article>
-    <article class="insight-card">
-        <p class="eyebrow">Pipeline</p>
-        <h3>Backend Go optimisé</h3>
-        <p>Refresh manuel, cache mémoire et parallélisation pour tenir la charge.</p>
-    </article>
+<section id="concerts" class="concerts-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Calendrier des concerts</p>
+            <h2>Tous les concerts à venir</h2>
+            <p>Découvrez les prochains concerts de tous les artistes suivis sur la carte interactive.</p>
+        </div>
+    </div>
+    <div class="concerts-map-container">
+        <div id="concerts-map" class="concerts-map-wrapper">
+            <div class="map-loading">
+                <div class="spinner"></div>
+                <p>Chargement des concerts...</p>
+                <div class="loading-progress" style="margin-top: 1rem; font-size: 0.9rem; color: var(--muted);"></div>
+            </div>
+        </div>
+        <div class="map-legend">
+            <div class="legend-item">
+                <span class="legend-color" style="background: linear-gradient(135deg, var(--accent), var(--accent-2));"></span>
+                <span>Concerts à venir</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: var(--muted);"></span>
+                <span>Concerts passés</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="statistiques" class="statistiques-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Statistiques globales</p>
+            <h2>Vue d'ensemble de la plateforme</h2>
+            <p>Analysez les données de tous les artistes et concerts.</p>
+        </div>
+    </div>
+    <div id="insights" class="insight-grid">
+        <article class="insight-card">
+            <p class="eyebrow">Instantané</p>
+            <h3 id="total-artists">0 artiste visible</h3>
+            <p>Le compteur affiche exactement ce qui est rendu dans la grille.</p>
+        </article>
+        <article class="insight-card">
+            <p class="eyebrow">Cartographie</p>
+            <h3>Leaflet embarqué</h3>
+            <p>Chaque fiche charge les concerts sur carte avec clustering natif.</p>
+        </article>
+        <article class="insight-card">
+            <p class="eyebrow">Pipeline</p>
+            <h3>Backend Go optimisé</h3>
+            <p>Refresh manuel, cache mémoire et parallélisation pour tenir la charge.</p>
+        </article>
+    </div>
 </section>
 
 <section class="doc-guides" id="guides">
@@ -210,5 +277,8 @@ tableauAvecTousLesArtistes.push(`{{"{{"}} . {{"}}"}}`)
 window.__ARTISTS = {{.ArtistsJSON}};
 </script>
 <script src="/script/app/app.js" defer></script>
+<script src="/script/app/map.js" defer></script>
+<script src="/script/app/concerts-map.js" defer></script>
 {{end}}
+
 

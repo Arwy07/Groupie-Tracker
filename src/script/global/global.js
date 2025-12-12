@@ -23,12 +23,106 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Fermer le menu lors du clic sur un lien
   document.querySelectorAll('.main-nav a').forEach(link => {
-    link.addEventListener('click', () => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      
+      // Gestion du scroll smooth pour les ancres
+      if (href && href.startsWith('#')) {
+        e.preventDefault();
+        const targetId = href.substring(1);
+        const targetElement = document.getElementById(targetId);
+        
+        if (targetElement) {
+          const headerHeight = 80;
+          const extraOffset = 40;
+          const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+          const offsetPosition = targetPosition - headerHeight - extraOffset;
+          
+          window.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: 'smooth'
+          });
+          
+          // Mettre à jour l'état actif des liens de navigation
+          document.querySelectorAll('.main-nav a').forEach(navLink => {
+            navLink.classList.remove('active');
+          });
+          link.classList.add('active');
+          
+          // Si on scroll vers une carte, attendre un peu pour qu'elle se charge
+          if ((targetId === 'map' && window.globalMap) || (targetId === 'concerts' && window.concertsMap)) {
+            setTimeout(() => {
+              if (targetId === 'map' && window.globalMap) {
+                window.globalMap.invalidateSize();
+              }
+              if (targetId === 'concerts' && window.concertsMap) {
+                window.concertsMap.invalidateSize();
+              }
+            }, 300);
+          }
+        } else {
+          console.warn(`Élément avec l'ID "${targetId}" introuvable`);
+        }
+      }
+      
       if (window.innerWidth <= 992) {
-        document.querySelector("[data-menu-toggle]").click();
+        const menuToggle = document.querySelector("[data-menu-toggle]");
+        if (menuToggle) menuToggle.click();
       }
     });
   });
+  
+  // Gestion du scroll pour mettre à jour les liens actifs (uniquement sur la page d'accueil)
+  if (window.location.pathname === '/' || window.location.pathname === '') {
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const scrollPosition = window.scrollY;
+        const headerHeight = 80;
+        const offset = headerHeight + 100;
+        
+        // Sections à vérifier dans l'ordre
+        const sections = [
+          { id: 'map', href: '#map' },
+          { id: 'artists-panel', href: '#artists-panel' },
+          { id: 'concerts', href: '#concerts' },
+          { id: 'statistiques', href: '#statistiques' }
+        ];
+        
+        let activeSection = null;
+        
+        // Trouver la section active en partant du haut
+        for (let i = sections.length - 1; i >= 0; i--) {
+          const section = document.getElementById(sections[i].id);
+          if (section) {
+            const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
+            
+            if (scrollPosition + offset >= sectionTop - 150) {
+              activeSection = sections[i];
+              break;
+            }
+          }
+        }
+        
+        // Mettre à jour les liens actifs
+        document.querySelectorAll('.main-nav a').forEach(link => {
+          link.classList.remove('active');
+          
+          // Si on est en haut de la page, activer le lien "Carte"
+          if (scrollPosition < 100) {
+            if (link.getAttribute('href') === '/' || link.getAttribute('href') === '') {
+              link.classList.add('active');
+            }
+          } else if (activeSection) {
+            if (link.getAttribute('href') === activeSection.href) {
+              link.classList.add('active');
+            }
+          }
+        });
+      }, 100);
+    });
+  }
 
   // Gestion du scroll pour le header
   const header = document.querySelector('.site-header');

@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div class="artist-card__actions">
             <span>${uniqueCities} lieu(x) cartographié(s)</span>
-            <a class="ghost-btn" href="/artist?id=${artist.id}">Voir la fiche</a>
+            <a class="ghost-btn" href="/artist?id=${artist.id}" onclick="event.preventDefault(); window.location.href='/artist?id=${artist.id}'">Voir la fiche</a>
           </div>
         </div>
       `;
@@ -142,7 +142,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!card) return;
     grid.querySelectorAll(".artist-card").forEach((el) => el.classList.remove("is-highlighted"));
     card.classList.add("is-highlighted");
-    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    
+    // Calculer la position avec un offset pour le header et un peu d'espace
+    const headerHeight = 80; // Hauteur du header
+    const extraOffset = 40; // Espace supplémentaire
+    const cardPosition = card.getBoundingClientRect().top + window.pageYOffset;
+    const offsetPosition = cardPosition - headerHeight - extraOffset;
+    
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth"
+    });
+    
     setTimeout(() => card.classList.remove("is-highlighted"), 2500);
   };
 

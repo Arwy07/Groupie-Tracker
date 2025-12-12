@@ -1,5 +1,27 @@
 /* Page Artiste - Styles spécifiques */
 
+:root {
+  /* Variables de couleurs cohérentes avec le thème principal */
+  --bg: #0a0e1a;
+  --bg-alt: #141824;
+  --panel: rgba(20, 24, 36, 0.95);
+  --panel-soft: rgba(60, 70, 90, 0.4);
+  --text: #e8ecf0;
+  --muted: #9ca3af;
+  --accent: #a855f7;
+  --accent-hover: #c084fc;
+  --accent-2: #ec4899;
+  --accent-2-hover: #f472b6;
+  --accent-3: #06b6d4;
+  --accent-3-hover: #22d3ee;
+  --border: rgba(156, 163, 175, 0.15);
+  --shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --border-radius: 16px;
+  --border-radius-sm: 10px;
+  --header-height: 80px;
+}
+
 /* Structure de base */
 .artist-page {
     background-color: var(--bg);
@@ -20,12 +42,13 @@
 
 /* En-tête de l'artiste */
 .artist-header {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 50%, var(--accent-3) 100%);
     color: white;
     padding: 3rem 0;
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 10px 40px rgba(168, 85, 247, 0.3);
 }
 
 .artist-header::before {
@@ -199,9 +222,21 @@
     transform-origin: left;
 }
 
+/* Section principale */
+.artist-main {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
 /* Section header */
 .section-header {
     margin-bottom: 2rem;
+}
+
+/* Section concerts */
+.section-concerts {
+    margin-bottom: 3rem;
 }
 
 .section-header h2 {
@@ -233,6 +268,17 @@
     height: 500px;
     position: relative;
     background: var(--bg-alt);
+    overflow: hidden;
+}
+
+.map-wrapper .leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
 }
 
 .map-loading {
@@ -286,21 +332,231 @@
 /* Liste des concerts */
 .concerts-list {
     display: grid;
+    gap: 1.5rem;
+}
+
+.concert-card-enhanced {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: var(--border-radius);
+    padding: 0;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.concert-card-enhanced::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.concert-card-enhanced:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(168, 85, 247, 0.25);
+    border-color: var(--accent);
+}
+
+.concert-card-enhanced:hover::before {
+    transform: scaleY(1);
+}
+
+.concert-date-badge {
+    width: 100px;
+    min-width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    flex-shrink: 0;
+}
+
+.concert-date-badge .date-day {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.concert-date-badge .date-month {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+    opacity: 0.9;
+}
+
+.concert-main-info {
+    flex: 1;
+    padding: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
 }
 
+.concert-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.concert-venue {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.concert-location-detail {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.concert-details-grid {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.concert-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.concert-detail-item i {
+    color: var(--accent);
+    width: 20px;
+    text-align: center;
+}
+
+.concert-action-icon {
+    width: 60px;
+    min-width: 60px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+    background: var(--bg-alt);
+    border-left: 1px solid var(--border);
+}
+
+.concert-card-enhanced:hover .concert-action-icon {
+    color: var(--accent);
+    background: rgba(168, 85, 247, 0.1);
+    transform: translateX(-5px);
+}
+
+/* Ancien style pour compatibilité */
 .concert-card {
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--border-radius);
     padding: 1.5rem;
     transition: all 0.2s ease;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.5rem;
+    align-items: start;
 }
 
 .concert-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.15);
     border-color: var(--accent);
+}
+
+.concert-card .concert-location {
+    grid-column: 1;
+}
+
+.concert-card .concert-info {
+    grid-column: 1;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.concert-card .concert-actions {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-end;
+}
+
+.concert-date-time {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.date-display, .time-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.date-display i, .time-display i {
+    color: var(--accent);
+}
+
+.concert-price-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.price-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.price-amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.loading-concerts {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+}
+
+.loading-concerts .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(168, 85, 247, 0.1);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .concert-location {
@@ -359,12 +615,35 @@
     padding: 1.5rem;
     text-align: center;
     transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 .member-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.2);
     border-color: var(--accent);
+}
+
+.member-card-hover {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(168, 85, 247, 0.9), transparent);
+    color: white;
+    padding: 0.75rem;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.member-card:hover .member-card-hover {
+    transform: translateY(0);
 }
 
 .member-avatar {
@@ -417,6 +696,53 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.quick-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.quick-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-alt);
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition);
+}
+
+.quick-stat-item:hover {
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid var(--accent);
+}
+
+.quick-stat-item i {
+    font-size: 1.5rem;
+    color: var(--accent);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168, 85, 247, 0.1);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.quick-stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.quick-stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
 }
 
 .stats-grid {
@@ -529,23 +855,50 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5rem 1.25rem;
-    border-radius: 50px;
+    padding: 0.6rem 1.4rem;
+    border-radius: 12px;
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: var(--transition);
     text-decoration: none;
     border: 1px solid transparent;
     gap: 0.5rem;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: white;
+    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+    left: 100%;
 }
 
 .btn:hover {
-    background: var(--accent-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .btn:active {
@@ -766,4 +1119,716 @@
 
 .leaflet-tooltip-right:before {
     border-right-color: var(--panel);
+}
+
+/* Modal de réservation */
+.booking-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.booking-modal.is-open {
+    display: flex;
+}
+
+.booking-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.booking-modal-content {
+    position: relative;
+    background: var(--panel);
+    border-radius: var(--border-radius-lg);
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.booking-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: var(--bg-alt);
+    color: var(--text);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    z-index: 10;
+}
+
+.booking-modal-close:hover {
+    background: var(--accent);
+    color: white;
+    transform: rotate(90deg);
+}
+
+.booking-header {
+    padding: 2rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1));
+}
+
+.booking-artist-info {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.booking-artist-image {
+    width: 100px;
+    height: 100px;
+    border-radius: var(--border-radius);
+    object-fit: cover;
+    border: 3px solid var(--accent);
+    flex-shrink: 0;
+}
+
+.booking-artist-info h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    color: var(--accent);
+}
+
+.booking-location-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin: 0.75rem 0;
+    color: var(--text);
+}
+
+.booking-location-info i {
+    color: var(--accent);
+    margin-top: 0.25rem;
+}
+
+.booking-city {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+.booking-date-time-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.date-time-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text);
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-alt);
+    border-radius: 50px;
+    border: 1px solid var(--border);
+}
+
+.date-time-item i {
+    color: var(--accent);
+}
+
+.date-time-item.price-preview {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1));
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.booking-location-name {
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+
+.booking-body {
+    padding: 2rem;
+}
+
+.booking-section {
+    margin-bottom: 2rem;
+}
+
+.booking-section h3 {
+    margin: 0 0 1.5rem;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text);
+}
+
+.booking-section h3 i {
+    color: var(--accent);
+}
+
+.seat-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.seat-type-card {
+    background: var(--bg-alt);
+    border: 2px solid var(--border);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.seat-type-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.2);
+}
+
+.seat-type-card.selected {
+    border-color: var(--accent);
+    background: rgba(168, 85, 247, 0.1);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+.seat-type-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 auto;
+}
+
+.seat-type-info {
+    text-align: center;
+}
+
+.seat-type-info h4 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+    color: var(--text);
+}
+
+.seat-type-info p {
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+.seat-type-price {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.seat-type-price .price-amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.seat-type-price .price-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+.seat-type-select {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.seat-type-select input[type="radio"] {
+    display: none;
+}
+
+.seat-type-select label {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: block;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
+
+.seat-type-select label::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 12px;
+    height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+}
+
+.seat-type-card.selected .seat-type-select label {
+    border-color: var(--accent);
+}
+
+.seat-type-card.selected .seat-type-select label::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.quantity-btn {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border);
+    background: var(--bg-alt);
+    color: var(--text);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.quantity-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: white;
+}
+
+.quantity-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#quantity-input {
+    width: 80px;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    border: 2px solid var(--border);
+    background: var(--bg-alt);
+    color: var(--text);
+    border-radius: var(--border-radius-sm);
+    padding: 0.5rem;
+}
+
+.quantity-hint {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.booking-summary {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+}
+
+.booking-summary h3 {
+    margin-top: 0;
+}
+
+.summary-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-row.summary-total {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--accent);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+    border-top: 2px solid var(--border);
+}
+
+.booking-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    background: var(--bg-alt);
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+
+.booking-footer .btn {
+    min-width: 150px;
+}
+
+.booking-confirmation {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.confirmation-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 2.5rem;
+}
+
+.booking-confirmation h3 {
+    margin: 0 0 1rem;
+    font-size: 1.5rem;
+    color: var(--text);
+}
+
+.booking-confirmation p {
+    margin: 0.75rem 0;
+    color: var(--muted);
+}
+
+.confirmation-total {
+    font-size: 1.25rem;
+    color: var(--text);
+    margin: 1.5rem 0 !important;
+}
+
+.confirmation-total strong {
+    color: var(--accent);
+    font-size: 1.5rem;
+}
+
+.confirmation-note {
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 1.5rem !important;
+}
+
+.all-dates-list {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.all-dates-list strong {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+    font-size: 0.9rem;
+}
+
+.all-dates-list ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    list-style: disc;
+}
+
+.all-dates-list li {
+    margin: 0.5rem 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+/* Modal d'informations sur les membres */
+.member-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.member-modal.is-open {
+    display: flex;
+}
+
+.member-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.member-modal-content {
+    position: relative;
+    background: var(--panel);
+    border-radius: var(--border-radius-lg);
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.member-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: var(--bg-alt);
+    color: var(--text);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    z-index: 10;
+}
+
+.member-modal-close:hover {
+    background: var(--accent);
+    color: white;
+    transform: rotate(90deg);
+}
+
+.member-modal-header {
+    padding: 2rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1));
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.member-modal-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2.5rem;
+    flex-shrink: 0;
+    border: 3px solid var(--accent);
+}
+
+.member-modal-title {
+    flex: 1;
+}
+
+.member-modal-title h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.75rem;
+    color: var(--text);
+}
+
+.member-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--accent);
+    color: white;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.member-role-badge i {
+    font-size: 1rem;
+}
+
+.member-modal-body {
+    padding: 2rem;
+}
+
+.member-section {
+    margin-bottom: 2rem;
+}
+
+.member-section h3 {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text);
+}
+
+.member-section h3 i {
+    color: var(--accent);
+}
+
+.member-role-description {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin: 0 0 1rem;
+    font-style: italic;
+}
+
+.member-bio {
+    color: var(--text);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.instruments-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.instrument-tag {
+    padding: 0.5rem 1rem;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    font-size: 0.9rem;
+    color: var(--text);
+    transition: var(--transition);
+}
+
+.instrument-tag:hover {
+    border-color: var(--accent);
+    background: rgba(168, 85, 247, 0.1);
+    transform: translateY(-2px);
+}
+
+.member-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.member-stat {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transition);
+}
+
+.member-stat:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+}
+
+.member-stat i {
+    font-size: 1.5rem;
+    color: var(--accent);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168, 85, 247, 0.1);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.member-stat .stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+}
+
+.member-stat .stat-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.member-modal-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    background: var(--bg-alt);
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+
+.member-modal-footer .btn {
+    min-width: 150px;
 }

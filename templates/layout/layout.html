@@ -31,11 +31,11 @@
     </button>
     
     <nav class="main-nav" id="main-navigation">
-        <a href="/" class="nav-link active">
+        <a href="#map" class="nav-link" data-nav="map">
             <i class="fas fa-map-marked-alt"></i>
             <span>Carte</span>
         </a>
-        <a href="#artists" class="nav-link">
+        <a href="#artists-panel" class="nav-link">
             <i class="fas fa-users"></i>
             <span>Artistes</span>
         </a>
@@ -62,10 +62,45 @@
 </main>
 
 <!-- Chargement des scripts -->
+<script>
+    // Vérifier que Leaflet est chargé avant d'exécuter les scripts
+    function waitForLeaflet(callback, maxAttempts = 100) {
+        let attempts = 0;
+        const checkLeaflet = setInterval(() => {
+            attempts++;
+            if (typeof L !== 'undefined' && typeof L.map === 'function') {
+                clearInterval(checkLeaflet);
+                console.log('✅ Leaflet chargé avec succès');
+                // Attendre un peu pour s'assurer que tout est prêt
+                setTimeout(callback, 100);
+            } else if (attempts >= maxAttempts) {
+                clearInterval(checkLeaflet);
+                console.error('❌ Leaflet n\'a pas pu être chargé après', maxAttempts, 'tentatives');
+                // Essayer de charger depuis un autre CDN en fallback
+                const fallbackScript = document.createElement('script');
+                fallbackScript.src = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
+                fallbackScript.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+                fallbackScript.crossOrigin = 'anonymous';
+                fallbackScript.defer = true;
+                fallbackScript.onload = () => {
+                    console.log('✅ Leaflet chargé depuis le CDN de secours');
+                    setTimeout(callback, 100);
+                };
+                fallbackScript.onerror = () => {
+                    console.error('❌ Impossible de charger Leaflet depuis les deux CDN');
+                    alert('Erreur: Impossible de charger la bibliothèque Leaflet. Vérifiez votre connexion internet.');
+                };
+                document.head.appendChild(fallbackScript);
+            }
+        }, 50);
+    }
+</script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-o9N1j7kGStGZ1HFl7fLyZj6Zj1l7oO5OVw2Agnz8wY0="
-        crossorigin=""></script>
-<script src="/script/global/global.js"></script>
+        crossorigin=""
+        defer
+        onerror="console.error('Erreur de chargement Leaflet depuis unpkg.com')"></script>
+<script src="/script/global/global.js" defer></script>
 {{block "pageScripts" .}}{{end}}
 
 <!-- Script d'initialisation -->
@@ -106,14 +141,13 @@
             });
         }
         
-        // Fermer le menu lors du clic sur un lien
-        document.querySelectorAll('.main-nav a').forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 992) {
-                    menuToggle.click();
-                }
-            });
-        });
+        // Initialiser l'état actif du lien "Carte" si on est sur la page d'accueil
+        if (window.location.pathname === '/' || window.location.pathname === '') {
+            const homeLink = document.querySelector('.main-nav a[href="/"]');
+            if (homeLink) {
+                homeLink.classList.add('active');
+            }
+        }
     });
 </script>
 </body>

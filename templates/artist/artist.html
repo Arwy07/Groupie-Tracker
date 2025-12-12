@@ -90,35 +90,15 @@
             <section id="concerts" class="section-concerts">
                 <div class="section-header">
                     <h2><i class="fas fa-calendar-alt"></i> Prochains concerts</h2>
-                    <p>Découvrez les dates de tournée à venir</p>
+                    <p>Découvrez les dates de tournée à venir et réservez vos places</p>
                 </div>
                 
-                <div class="concerts-list">
-                    {{range .Artist.Concerts}}
-                    <div class="concert-card">
-                        <div class="concert-location">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <div>
-                                <h3>{{.DisplayLocation}}</h3>
-                                <p>{{.City}}, {{.Country}}</p>
-                            </div>
-                        </div>
-                        <div class="concert-dates">
-                            {{range .Dates}}
-                            <span class="date-badge">{{.}}</span>
-                            {{end}}
-                        </div>
-                        <button class="btn btn-sm" data-location="{{.DisplayLocation}}" data-coords="{{.Coordinates.Latitude}},{{.Coordinates.Longitude}}">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>Voir sur la carte</span>
-                        </button>
+                <div class="concerts-list" id="upcoming-concerts-list">
+                    <!-- Les concerts seront chargés dynamiquement par JavaScript -->
+                    <div class="loading-concerts">
+                        <div class="spinner"></div>
+                        <p>Chargement des prochains concerts...</p>
                     </div>
-                    {{else}}
-                    <div class="empty-state">
-                        <i class="fas fa-calendar-times"></i>
-                        <p>Aucun concert prévu pour le moment</p>
-                    </div>
-                    {{end}}
                 </div>
             </section>
             
@@ -130,13 +110,17 @@
                 </div>
                 
                 <div class="members-grid">
-                    {{range .Artist.Members}}
-                    <div class="member-card">
+                    {{range $index, $member := .Artist.Members}}
+                    <div class="member-card" data-member-name="{{$member}}" data-member-index="{{$index}}" style="cursor: pointer;">
                         <div class="member-avatar">
                             <i class="fas fa-user"></i>
                         </div>
-                        <h3>{{.}}</h3>
+                        <h3>{{$member}}</h3>
                         <p>Membre</p>
+                        <div class="member-card-hover">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Cliquez pour plus d'infos</span>
+                        </div>
                     </div>
                     {{end}}
                 </div>
@@ -170,40 +154,38 @@
                         <i class="fas fa-globe-americas"></i>
                         <div>
                             <span class="stat-value">
-                                {{$countries := makeSlice}}
+                                {{$locations := makeSlice}}
                                 {{range .Artist.Concerts}}
-                                    {{if not (in $countries .Country)}}
-                                        {{$countries = append $countries .Country}}
+                                    {{if not (in $locations .DisplayLocation)}}
+                                        {{$locations = append $locations .DisplayLocation}}
                                     {{end}}
                                 {{end}}
-                                {{len $countries}}
+                                {{len $locations}}
                             </span>
-                            <span class="stat-label">Pays visités</span>
+                            <span class="stat-label">Lieux uniques</span>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div class="sidebar-widget">
-                <h3>Prochains concerts</h3>
-                <div class="upcoming-events">
-                    {{range first 3 .Artist.Concerts}}
-                    <div class="event-item">
-                        <div class="event-date">
-                            <span class="day">{{(index .Dates 0 | formatDate "02")}}</span>
-                            <span class="month">{{(index .Dates 0 | formatDate "Jan")}}</span>
-                        </div>
-                        <div class="event-details">
-                            <h4>{{.DisplayLocation}}</h4>
-                            <p>{{.City}}, {{.Country}}</p>
-                            <span class="event-time">{{len .Dates}} date{{if gt (len .Dates) 1}}s{{end}}</span>
+                <h3>Statistiques rapides</h3>
+                <div class="quick-stats">
+                    <div class="quick-stat-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div>
+                            <span class="quick-stat-value" id="quick-upcoming-count">-</span>
+                            <span class="quick-stat-label">Concerts à venir</span>
                         </div>
                     </div>
-                    {{end}}
+                    <div class="quick-stat-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <span class="quick-stat-value">{{len .Artist.Concerts}}</span>
+                            <span class="quick-stat-label">Lieux visités</span>
+                        </div>
+                    </div>
                 </div>
-                {{if gt (len .Artist.Concerts) 3}}
-                <a href="#concerts" class="btn btn-block btn-outline">Voir tous les concerts</a>
-                {{end}}
             </div>
         </aside>
     </div>
@@ -227,13 +209,15 @@ function formatDate(dateString, format) {
 }
 
 // Fonction pour faire défiler jusqu'à un élément
-function scrollToElement(selector, offset = 100) {
+function scrollToElement(selector, offset = 120) {
     const element = document.querySelector(selector);
     if (element) {
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        const headerHeight = 80; // Hauteur du header
+        const totalOffset = headerHeight + offset;
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - totalOffset;
         window.scrollTo({
-            top: offsetPosition,
+            top: Math.max(0, offsetPosition),
             behavior: 'smooth'
         });
     }
@@ -253,57 +237,364 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Gestion du clic sur le bouton "Voir sur la carte"
-    document.querySelectorAll('.concert-card .btn').forEach(button => {
+    document.querySelectorAll('.concert-card .btn:not(:disabled)').forEach(button => {
         button.addEventListener('click', function() {
-            const coords = this.getAttribute('data-coords').split(',');
-            if (window.map && coords.length === 2) {
-                const lat = parseFloat(coords[0]);
-                const lng = parseFloat(coords[1]);
-                map.setView([lat, lng], 12);
-                
-                // Faire clignoter le marqueur correspondant
-                const marker = window.markers.find(m => 
-                    m.getLatLng().lat === lat && m.getLatLng().lng === lng
-                );
+            const coordsStr = this.getAttribute('data-coords');
+            if (!coordsStr) return;
+            
+            const coords = coordsStr.split(',');
+            if (coords.length !== 2) return;
+            
+            const lat = parseFloat(coords[0]);
+            const lng = parseFloat(coords[1]);
+            
+            if (isNaN(lat) || isNaN(lng)) {
+                console.error('Coordonnées invalides:', coordsStr);
+                return;
+            }
+            
+            // Utiliser la carte globale (artistMap ou map)
+            const mapInstance = window.artistMap || window.map;
+            if (!mapInstance) {
+                console.error('Carte non initialisée');
+                return;
+            }
+            
+            // Centrer la carte sur les coordonnées
+            mapInstance.setView([lat, lng], 13, {
+                animate: true,
+                duration: 0.5
+            });
+            
+            // Trouver et activer le marqueur correspondant
+            const markers = window.artistMarkers || window.markers || [];
+            if (Array.isArray(markers)) {
+                const marker = markers.find(m => {
+                    const markerLatLng = m.getLatLng();
+                    const tolerance = 0.001;
+                    return Math.abs(markerLatLng.lat - lat) < tolerance && 
+                           Math.abs(markerLatLng.lng - lng) < tolerance;
+                });
                 
                 if (marker) {
+                    // Ouvrir le popup
                     marker.openPopup();
                     
                     // Animation de surbrillance
                     const icon = marker.getElement();
                     if (icon) {
-                        icon.style.transform = 'scale(1.5)';
+                        icon.style.transition = 'transform 0.3s ease';
+                        icon.style.transform = 'scale(1.5) rotate(-45deg)';
                         setTimeout(() => {
-                            icon.style.transform = 'scale(1)';
+                            icon.style.transform = 'scale(1) rotate(-45deg)';
                         }, 500);
                     }
                 }
-                
-                // Faire défiler jusqu'à la carte
-                scrollToElement('#carte');
             }
+            
+            // Faire défiler jusqu'à la carte avec un offset correct
+            setTimeout(() => {
+                scrollToElement('#carte', 120);
+            }, 300);
         });
     });
     
     // Détection du défilement pour la navigation secondaire
+    let scrollTimeout;
     window.addEventListener('scroll', function() {
-        const scrollPosition = window.scrollY;
-        
-        document.querySelectorAll('section').forEach(section => {
-            const sectionTop = section.offsetTop - 150;
-            const sectionHeight = section.offsetHeight;
-            const sectionId = '#' + section.getAttribute('id');
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const scrollPosition = window.scrollY;
+            const headerHeight = 80;
+            const navHeight = 60;
+            const totalOffset = headerHeight + navHeight;
             
-            if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-                const currentNavLink = document.querySelector(`.artist-nav a[href="${sectionId}"]`);
-                if (currentNavLink) {
-                    navLinks.forEach(link => link.classList.remove('active'));
-                    currentNavLink.classList.add('active');
+            document.querySelectorAll('section[id]').forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
+                const sectionHeight = section.offsetHeight;
+                const sectionId = '#' + section.getAttribute('id');
+                
+                if (scrollPosition + totalOffset >= sectionTop - 50 && 
+                    scrollPosition + totalOffset < sectionTop + sectionHeight - 50) {
+                    const currentNavLink = document.querySelector(`.artist-nav a[href="${sectionId}"]`);
+                    if (currentNavLink) {
+                        navLinks.forEach(link => link.classList.remove('active'));
+                        currentNavLink.classList.add('active');
+                    }
+                }
+            });
+        }, 50);
+    });
+    
+    // Charger et afficher les prochains concerts après un court délai pour s'assurer que tout est prêt
+    setTimeout(() => {
+        loadUpcomingConcerts();
+    }, 100);
+    
+    // Ajouter les event listeners pour les cartes de membres après un court délai
+    setTimeout(() => {
+        setupMemberCards();
+    }, 200);
+});
+
+// Fonction pour configurer les cartes de membres
+function setupMemberCards() {
+    console.log('Configuration des cartes de membres...');
+    const memberCards = document.querySelectorAll('.member-card');
+    console.log(`Nombre de cartes trouvées: ${memberCards.length}`);
+    
+    memberCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const memberName = this.getAttribute('data-member-name');
+            console.log('Clic sur membre:', memberName);
+            if (memberName) {
+                if (typeof openMemberModal === 'function') {
+                    openMemberModal(memberName);
+                } else {
+                    console.error('Fonction openMemberModal non disponible');
+                    alert('Fonctionnalité en cours de chargement...');
                 }
             }
         });
     });
-});
+}
+
+// Fonction pour charger les prochains concerts
+function loadUpcomingConcerts() {
+    console.log('Chargement des prochains concerts...');
+    const artist = window.__ARTIST;
+    
+    if (!artist) {
+        console.error('Données artiste non disponibles');
+        const concertsList = document.getElementById('upcoming-concerts-list');
+        if (concertsList) {
+            concertsList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>Données artiste non disponibles</p>
+                </div>
+            `;
+        }
+        return;
+    }
+    
+    if (!artist.concerts || artist.concerts.length === 0) {
+        console.log('Aucun concert trouvé pour cet artiste');
+        const concertsList = document.getElementById('upcoming-concerts-list');
+        if (concertsList) {
+            concertsList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>Aucun concert prévu pour le moment</p>
+                </div>
+            `;
+        }
+        return;
+    }
+    
+    console.log(`Traitement de ${artist.concerts.length} concerts...`);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const upcomingConcerts = [];
+    
+    // Filtrer les concerts à venir
+    artist.concerts.forEach(concert => {
+        if (!concert.dates || concert.dates.length === 0) return;
+        
+        concert.dates.forEach(dateStr => {
+            try {
+                const [day, month, year] = dateStr.split('-').map(Number);
+                const fullYear = year < 100 ? 2000 + year : year;
+                const concertDate = new Date(fullYear, month - 1, day);
+                concertDate.setHours(0, 0, 0, 0);
+                
+                if (concertDate >= today) {
+                    upcomingConcerts.push({
+                        ...concert,
+                        date: dateStr,
+                        concertDate: concertDate
+                    });
+                }
+            } catch (e) {
+                console.warn('Erreur de parsing de date:', dateStr, e);
+            }
+        });
+    });
+    
+    console.log(`${upcomingConcerts.length} concerts à venir trouvés`);
+    
+    // Trier par date
+    upcomingConcerts.sort((a, b) => a.concertDate - b.concertDate);
+    
+    const concertsList = document.getElementById('upcoming-concerts-list');
+    if (!concertsList) {
+        console.error('Élément upcoming-concerts-list introuvable');
+        return;
+    }
+    
+    if (upcomingConcerts.length === 0) {
+        concertsList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-calendar-times"></i>
+                <p>Aucun concert à venir pour le moment</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Mettre à jour le compteur dans la sidebar
+    const quickCount = document.getElementById('quick-upcoming-count');
+    if (quickCount) {
+        quickCount.textContent = upcomingConcerts.length;
+    }
+    
+    // Afficher les concerts avec un design amélioré
+    concertsList.innerHTML = upcomingConcerts.map((concert, index) => {
+        const dateFormatted = formatConcertDate(concert.date);
+        const time = generateRandomTime();
+        const price = generateRandomPrice();
+        
+        // Extraire ville et pays depuis displayLocation si possible
+        const locationParts = (concert.displayLocation || concert.location || '').split(',');
+        const city = locationParts.length > 1 ? locationParts[locationParts.length - 2].trim() : '';
+        const country = locationParts.length > 0 ? locationParts[locationParts.length - 1].trim() : '';
+        
+        // Extraire jour et mois pour l'affichage
+        const [day, month, year] = concert.date.split('-').map(Number);
+        const fullYear = year < 100 ? 2000 + year : year;
+        const dateObj = new Date(fullYear, month - 1, day);
+        const monthsShort = ['JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUN', 'JUL', 'AOÛ', 'SEP', 'OCT', 'NOV', 'DÉC'];
+        const dayNum = day.toString().padStart(2, '0');
+        const monthShort = monthsShort[month - 1];
+        
+        // Préparer les données du concert pour le modal avec toutes les informations
+        const concertData = {
+            location: concert.displayLocation || concert.location,
+            city: city || '',
+            country: country || '',
+            date: concert.date,
+            dateFormatted: dateFormatted,
+            time: time,
+            price: price,
+            allDates: concert.dates || [],
+            coordinates: concert.coordinates || null,
+            artistName: window.__ARTIST ? window.__ARTIST.name : '',
+            artistImage: window.__ARTIST ? window.__ARTIST.image : ''
+        };
+        
+        // Vérifier les coordonnées
+        const hasCoords = concert.coordinates && (concert.coordinates.latitude || concert.coordinates.lat);
+        const coordsStr = hasCoords ? `${concert.coordinates.latitude || concert.coordinates.lat},${concert.coordinates.longitude || concert.coordinates.lng}` : '';
+        
+        // Encoder les données pour l'attribut HTML
+        const concertDataEncoded = JSON.stringify(concertData).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+        
+        return `
+            <div class="concert-card-enhanced" data-concert-index="${index}" data-concert-data="${concertDataEncoded}" style="cursor: pointer;">
+                <div class="concert-date-badge">
+                    <span class="date-day">${dayNum}</span>
+                    <span class="date-month">${monthShort}</span>
+                </div>
+                <div class="concert-main-info">
+                    <div class="concert-header-info">
+                        <h3 class="concert-venue">${concert.displayLocation || concert.location}</h3>
+                        ${city || country ? `<p class="concert-location-detail">${city}${city && country ? ', ' : ''}${country}</p>` : ''}
+                    </div>
+                    <div class="concert-details-grid">
+                        <div class="concert-detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span>${time}</span>
+                        </div>
+                        <div class="concert-detail-item">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>À partir de ${price}€</span>
+                        </div>
+                        <div class="concert-detail-item">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>${concert.dates ? concert.dates.length : 1} date${(concert.dates && concert.dates.length > 1) ? 's' : ''}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="concert-action-icon">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    // Attendre un peu pour que le DOM soit complètement mis à jour
+    setTimeout(() => {
+        setupConcertCards();
+    }, 100);
+}
+
+// Fonction pour configurer les cartes de concerts
+function setupConcertCards() {
+    console.log('Configuration des cartes de concerts...');
+    
+    // Rendre toute la carte cliquable pour ouvrir le modal de réservation
+    document.querySelectorAll('.concert-card-enhanced').forEach(card => {
+        card.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+                const dataStr = this.getAttribute('data-concert-data');
+                if (!dataStr) {
+                    console.error('Données de concert manquantes');
+                    return;
+                }
+                // Décoder les entités HTML
+                const decodedStr = dataStr.replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+                const concertData = JSON.parse(decodedStr);
+                console.log('Ouverture du modal de réservation:', concertData);
+                if (typeof openBookingModal === 'function') {
+                    openBookingModal(concertData);
+                } else {
+                    console.error('Fonction openBookingModal non disponible');
+                    alert('Fonctionnalité de réservation en cours de chargement...');
+                }
+            } catch (error) {
+                console.error('Erreur lors de l\'ouverture du modal:', error);
+            }
+        });
+    });
+    
+    console.log(`✅ ${document.querySelectorAll('.concert-card-enhanced').length} cartes de concerts configurées`);
+}
+
+// Fonction pour formater la date du concert
+function formatConcertDate(dateStr) {
+    try {
+        const [day, month, year] = dateStr.split('-').map(Number);
+        const fullYear = year < 100 ? 2000 + year : year;
+        const date = new Date(fullYear, month - 1, day);
+        const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                       'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+        const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+        return `${days[date.getDay()]} ${day} ${months[month - 1]} ${fullYear}`;
+    } catch {
+        return dateStr;
+    }
+}
+
+// Fonction pour générer une heure aléatoire
+function generateRandomTime() {
+    const hours = Math.floor(Math.random() * 3) + 19; // Entre 19h et 21h
+    const minutes = Math.random() < 0.5 ? '00' : '30';
+    return `${hours}:${minutes}`;
+}
+
+// Fonction pour générer un prix aléatoire
+function generateRandomPrice() {
+    const basePrices = [35, 45, 55, 65, 75, 85, 95];
+    return basePrices[Math.floor(Math.random() * basePrices.length)];
+}
 </script>
+<script src="/script/artist/member.js"></script>
+<script src="/script/artist/booking.js"></script>
 <script src="/script/artist/artist.js"></script>
 {{end}}

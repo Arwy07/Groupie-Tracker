@@ -1,10 +1,9 @@
 package main
 
 import (
-	"log"
-
 	"groupie/src/routes"
 	"groupie/src/support"
+	"log"
 )
 
 func main() {
