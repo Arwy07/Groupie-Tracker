@@ -1,0 +1,309 @@
+{{define "artist.html"}}
+{{template "layout" .}}
+{{end}}
+
+{{define "head"}}
+<link rel="stylesheet" href="/assets/styles/artist/artist.css">
+{{end}}
+
+{{define "content"}}
+<div class="artist-page">
+    <!-- En-tête de l'artiste -->
+    <div class="artist-header">
+        <div class="container">
+            <div class="artist-header__content">
+                <div class="artist-avatar">
+                    <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}" class="artist-image">
+                    <div class="artist-badges">
+                        <span class="badge">Depuis {{.Artist.CreationDate}}</span>
+                        <span class="badge">1er album: {{.Artist.FirstAlbum}}</span>
+                    </div>
+                </div>
+                <div class="artist-info">
+                    <h1 class="artist-name">{{.Artist.Name}}</h1>
+                    <p class="artist-meta">
+                        <span>{{len .Artist.Members}} membre{{if gt (len .Artist.Members) 1}}s{{end}}</span>
+                        <span>•</span>
+                        <span>{{len .Artist.Concerts}} lieux de concert</span>
+                    </p>
+                    
+                    <div class="artist-members">
+                        {{range .Artist.Members}}
+                        <div class="member">
+                            <i class="fas fa-user"></i>
+                            <span>{{.}}</span>
+                        </div>
+                        {{end}}
+                    </div>
+                    
+                    <a href="/" class="back-link">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Retour à la liste</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation secondaire -->
+    <nav class="artist-nav">
+        <div class="container">
+            <ul>
+                <li><a href="#concerts" class="active">Concerts</a></li>
+                <li><a href="#carte">Carte des tournées</a></li>
+                <li><a href="#albums">Discographie</a></li>
+                <li><a href="#membres">Membres</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- Section principale -->
+    <div class="container">
+        <div class="artist-main">
+            <!-- Section Carte -->
+            <section id="carte" class="section-map">
+                <div class="section-header">
+                    <h2><i class="fas fa-map-marked-alt"></i> Carte des tournées</h2>
+                    <p>Visualisez les lieux de concert sur la carte</p>
+                </div>
+                <div class="map-container">
+                    <div id="artist-map" class="map-wrapper">
+                        <div class="map-loading">
+                            <div class="spinner"></div>
+                            <p>Chargement de la carte...</p>
+                        </div>
+                    </div>
+                    <div class="map-legend">
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: var(--accent);"></span>
+                            <span>Concerts à venir</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: var(--muted);"></span>
+                            <span>Concerts passés</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section Concerts -->
+            <section id="concerts" class="section-concerts">
+                <div class="section-header">
+                    <h2><i class="fas fa-calendar-alt"></i> Prochains concerts</h2>
+                    <p>Découvrez les dates de tournée à venir</p>
+                </div>
+                
+                <div class="concerts-list">
+                    {{range .Artist.Concerts}}
+                    <div class="concert-card">
+                        <div class="concert-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <h3>{{.DisplayLocation}}</h3>
+                                <p>{{.City}}, {{.Country}}</p>
+                            </div>
+                        </div>
+                        <div class="concert-dates">
+                            {{range .Dates}}
+                            <span class="date-badge">{{.}}</span>
+                            {{end}}
+                        </div>
+                        <button class="btn btn-sm" data-location="{{.DisplayLocation}}" data-coords="{{.Coordinates.Latitude}},{{.Coordinates.Longitude}}">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Voir sur la carte</span>
+                        </button>
+                    </div>
+                    {{else}}
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>Aucun concert prévu pour le moment</p>
+                    </div>
+                    {{end}}
+                </div>
+            </section>
+            
+            <!-- Section Membres -->
+            <section id="membres" class="section-members">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> Membres du groupe</h2>
+                    <p>Découvrez les artistes qui composent le groupe</p>
+                </div>
+                
+                <div class="members-grid">
+                    {{range .Artist.Members}}
+                    <div class="member-card">
+                        <div class="member-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3>{{.}}</h3>
+                        <p>Membre</p>
+                    </div>
+                    {{end}}
+                </div>
+            </section>
+        </div>
+        
+        <!-- Sidebar -->
+        <aside class="artist-sidebar">
+            <div class="sidebar-widget">
+                <h3>Statistiques</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <i class="fas fa-music"></i>
+                        <div>
+                            <span class="stat-value">{{len .Artist.Concerts}}</span>
+                            <span class="stat-label">Lieux visités</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-calendar-check"></i>
+                        <div>
+                            <span class="stat-value">
+                                {{$totalDates := 0}}
+                                {{range .Artist.Concerts}}{{$totalDates = add $totalDates (len .Dates)}}{{end}}
+                                {{$totalDates}}
+                            </span>
+                            <span class="stat-label">Dates de concert</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-globe-americas"></i>
+                        <div>
+                            <span class="stat-value">
+                                {{$countries := makeSlice}}
+                                {{range .Artist.Concerts}}
+                                    {{if not (in $countries .Country)}}
+                                        {{$countries = append $countries .Country}}
+                                    {{end}}
+                                {{end}}
+                                {{len $countries}}
+                            </span>
+                            <span class="stat-label">Pays visités</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-widget">
+                <h3>Prochains concerts</h3>
+                <div class="upcoming-events">
+                    {{range first 3 .Artist.Concerts}}
+                    <div class="event-item">
+                        <div class="event-date">
+                            <span class="day">{{(index .Dates 0 | formatDate "02")}}</span>
+                            <span class="month">{{(index .Dates 0 | formatDate "Jan")}}</span>
+                        </div>
+                        <div class="event-details">
+                            <h4>{{.DisplayLocation}}</h4>
+                            <p>{{.City}}, {{.Country}}</p>
+                            <span class="event-time">{{len .Dates}} date{{if gt (len .Dates) 1}}s{{end}}</span>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+                {{if gt (len .Artist.Concerts) 3}}
+                <a href="#concerts" class="btn btn-block btn-outline">Voir tous les concerts</a>
+                {{end}}
+            </div>
+        </aside>
+    </div>
+</div>
+{{end}}
+
+{{define "pageScripts"}}
+<script>
+// Passer les données de l'artiste au JavaScript
+window.__ARTIST = {{toJSON .Artist}};
+
+// Fonction utilitaire pour formater les dates
+function formatDate(dateString, format) {
+    const date = new Date(dateString);
+    const options = { 
+        day: '2-digit', 
+        month: format === 'short' ? 'short' : 'long',
+        year: 'numeric'
+    };
+    return date.toLocaleDateString('fr-FR', options);
+}
+
+// Fonction pour faire défiler jusqu'à un élément
+function scrollToElement(selector, offset = 100) {
+    const element = document.querySelector(selector);
+    if (element) {
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion de la navigation secondaire
+    const navLinks = document.querySelectorAll('.artist-nav a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = this.getAttribute('href');
+            navLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            scrollToElement(target);
+        });
+    });
+    
+    // Gestion du clic sur le bouton "Voir sur la carte"
+    document.querySelectorAll('.concert-card .btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const coords = this.getAttribute('data-coords').split(',');
+            if (window.map && coords.length === 2) {
+                const lat = parseFloat(coords[0]);
+                const lng = parseFloat(coords[1]);
+                map.setView([lat, lng], 12);
+                
+                // Faire clignoter le marqueur correspondant
+                const marker = window.markers.find(m => 
+                    m.getLatLng().lat === lat && m.getLatLng().lng === lng
+                );
+                
+                if (marker) {
+                    marker.openPopup();
+                    
+                    // Animation de surbrillance
+                    const icon = marker.getElement();
+                    if (icon) {
+                        icon.style.transform = 'scale(1.5)';
+                        setTimeout(() => {
+                            icon.style.transform = 'scale(1)';
+                        }, 500);
+                    }
+                }
+                
+                // Faire défiler jusqu'à la carte
+                scrollToElement('#carte');
+            }
+        });
+    });
+    
+    // Détection du défilement pour la navigation secondaire
+    window.addEventListener('scroll', function() {
+        const scrollPosition = window.scrollY;
+        
+        document.querySelectorAll('section').forEach(section => {
+            const sectionTop = section.offsetTop - 150;
+            const sectionHeight = section.offsetHeight;
+            const sectionId = '#' + section.getAttribute('id');
+            
+            if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                const currentNavLink = document.querySelector(`.artist-nav a[href="${sectionId}"]`);
+                if (currentNavLink) {
+                    navLinks.forEach(link => link.classList.remove('active'));
+                    currentNavLink.classList.add('active');
+                }
+            }
+        });
+    });
+});
+</script>
+<script src="/script/artist/artist.js"></script>
+{{end}}
