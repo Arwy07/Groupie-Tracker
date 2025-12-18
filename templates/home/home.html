@@ -271,39 +271,57 @@
     </div>
 </section>
 
-<section class="doc-guides" id="guides">
-    <article class="doc-card">
-        <p class="eyebrow">Relations</p>
-        <h3>Mapper les clés dynamiques</h3>
-        <p>
-            Les clés <code>datesLocations</code> sont imprévisibles : utilisez un
-            <code>map[string][]string</code> pour hydrater les villes côté Go.
-        </p>
-        <pre class="code-block">type Date struct {
-    Id int `json:"id"`
-    DatesLocations map[string][]string `json:"datesLocations"`
-}</pre>
-    </article>
-    <article class="doc-card">
-        <p class="eyebrow">Go → JS</p>
-        <h3>Sérialiser proprement</h3>
-        <p>
-            On pousse les artistes dans <code>window.__ARTISTS</code> puis on pilote la grille depuis
-            <code>static/js/app.js</code>.
-        </p>
-        <pre class="code-block">{{"{{"}} range .Artists {{"}}"}}<script>
-tableauAvecTousLesArtistes.push(`{{"{{"}} . {{"}}"}}`)
-</script>{{"{{"}} end {{"}}"}}</pre>
-    </article>
-    <article class="doc-card">
-        <p class="eyebrow">Range clé / valeur</p>
-        <h3>Afficher les maps</h3>
-        <p>Les relations ville → dates se parcourent en Go template via <code>range</code>.</p>
-        <pre class="code-block">{{"{{"}} range $key, $value := .VotreMap {{"}}"}}
-<p>{{"{{"}} $key {{"}}"}}</p>
-<p>{{"{{"}} $value {{"}}"}}</p>
-{{"{{"}} end {{"}}"}}</pre>
-    </article>
+<section class="footer-section" id="footer">
+    <div class="footer-content">
+        <div class="footer-column">
+            <h4>À propos</h4>
+            <ul>
+                <li><a href="#map">Carte mondiale</a></li>
+                <li><a href="#artists-panel">Artistes</a></li>
+                <li><a href="#concerts">Concerts</a></li>
+                <li><a href="#statistiques">Statistiques</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Fonctionnalités</h4>
+            <ul>
+                <li><a href="#filters">Filtres avancés</a></li>
+                <li><a href="#search">Recherche</a></li>
+                <li><a href="#map">Cartographie</a></li>
+                <li><a href="#artists-panel">Galerie</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Informations</h4>
+            <ul>
+                <li><a href="#">À propos</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#">FAQ</a></li>
+                <li><a href="#">Mentions légales</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Ressources</h4>
+            <ul>
+                <li><a href="#">Documentation</a></li>
+                <li><a href="#">API</a></li>
+                <li><a href="#">Support</a></li>
+                <li><a href="#">Changelog</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <div class="footer-brand">
+            <span>
+                <i class="fas fa-globe-americas"></i>
+                Groupie Tracker
+            </span>
+        </div>
+        <div class="footer-copyright">
+            <p>&copy; 2025 Groupie Tracker. Tous droits réservés.</p>
+            <p class="footer-data">Données fournies par l'API Groupie Tracker</p>
+        </div>
+    </div>
 </section>
 {{end}}
 

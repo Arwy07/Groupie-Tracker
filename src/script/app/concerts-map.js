@@ -43,11 +43,16 @@ function initConcertsMap() {
         doubleClickZoom: true,
         boxZoom: true,
         keyboard: true,
-        fadeAnimation: false, // Désactiver pour chargement plus rapide
-        zoomAnimation: false, // Désactiver pour chargement plus rapide
+        fadeAnimation: true, // Activer les animations fluides
+        zoomAnimation: true, // Activer les animations de zoom
+        zoomAnimationThreshold: 4, // Seuil pour l'animation de zoom
         attributionControl: true,
         center: [20, 0], // Centre du monde
-        zoom: 2 // Zoom initial pour voir le monde
+        zoom: 2, // Zoom initial pour voir le monde
+        minZoom: 2, // Zoom minimum pour éviter de voir plusieurs cartes
+        maxBounds: [[-85, -180], [85, 180]], // Limiter le déplacement
+        maxBoundsViscosity: 1.0, // Forcer la carte à rester dans les limites
+        worldCopyJump: false // Empêcher le saut vers une copie du monde
     });
     
     // Ajouter le contrôle de zoom
@@ -61,8 +66,10 @@ function initConcertsMap() {
     const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
+        minZoom: 2, // Zoom minimum pour éviter de voir plusieurs cartes
         maxZoom: 19,
-        detectRetina: true
+        detectRetina: true,
+        noWrap: true // Empêcher la répétition horizontale des tuiles
     });
     
     // Fallback si CartoDB ne fonctionne pas
@@ -72,6 +79,9 @@ function initConcertsMap() {
     });
     
     tileLayer.addTo(map);
+    
+    // Empêcher la répétition horizontale en limitant le déplacement (après l'ajout de la couche)
+    map.setMaxBounds([[-85, -180], [85, 180]]);
     
     console.log('Carte des concerts Leaflet initialisée');
     
@@ -600,6 +610,7 @@ function initConcertsMap() {
             position: relative !important;
             overflow: hidden !important;
             box-sizing: border-box !important;
+            border-radius: 16px;
         }
         
         #concerts-map .leaflet-container {
@@ -611,96 +622,208 @@ function initConcertsMap() {
             right: 0 !important;
             bottom: 0 !important;
             z-index: 1 !important;
+            border-radius: 16px;
+            background: var(--bg-alt);
         }
         
         #concerts-map .leaflet-pane {
             z-index: 2 !important;
         }
         
+        /* Contrôles Leaflet modernisés */
+        .leaflet-control-zoom {
+            border: none !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(168, 85, 247, 0.2) !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            background: rgba(20, 24, 36, 0.95) !important;
+            backdrop-filter: blur(20px) !important;
+        }
+        
+        .leaflet-control-zoom a {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: var(--text) !important;
+            border: 1px solid rgba(168, 85, 247, 0.3) !important;
+            width: 40px !important;
+            height: 40px !important;
+            line-height: 40px !important;
+            font-size: 20px !important;
+            font-weight: 600 !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            text-decoration: none !important;
+        }
+        
+        .leaflet-control-zoom a:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(236, 72, 153, 0.3)) !important;
+            color: white !important;
+            border-color: var(--accent) !important;
+            transform: scale(1.05) !important;
+            box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4) !important;
+        }
+        
+        .leaflet-control-zoom a:active {
+            transform: scale(0.95) !important;
+        }
+        
+        .leaflet-control-zoom-in {
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2) !important;
+        }
+        
+        /* Curseur personnalisé pour la carte */
+        .leaflet-container {
+            cursor: grab !important;
+        }
+        
+        .leaflet-container:active {
+            cursor: grabbing !important;
+        }
+        
+        .leaflet-container.leaflet-drag-target {
+            cursor: grabbing !important;
+        }
+        
+        /* Marqueurs avec photos colorés et animés */
         .custom-marker-with-photo {
             position: relative;
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: auto !important;
             z-index: 100 !important;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
         }
         
         .marker-photo-container {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             overflow: hidden;
-            border: 3px solid white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            border: 4px solid white;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(168, 85, 247, 0.3);
             position: relative;
             z-index: 2;
             background: var(--bg-alt);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .marker-photo {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
         }
         
         .marker-photo-fallback {
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            background: linear-gradient(135deg, #a855f7, #ec4899, #f472b6);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.1);
+            }
+            50% {
+                box-shadow: 0 8px 28px rgba(168, 85, 247, 0.7), 0 0 0 3px rgba(255, 255, 255, 0.2);
+            }
         }
         
         .marker-pin-shadow {
             position: absolute;
-            bottom: 0;
+            bottom: -5px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-top: 15px solid rgba(0, 0, 0, 0.3);
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 18px solid rgba(0, 0, 0, 0.4);
             z-index: 1;
+            transition: all 0.3s ease;
         }
         
         .custom-marker-with-photo.upcoming .marker-photo-container {
-            border-color: var(--accent);
-            box-shadow: 0 4px 16px rgba(168, 85, 247, 0.5);
+            border-color: rgb(168, 85, 247) !important;
+            box-shadow: 0 6px 24px rgba(168, 85, 247, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
+            animation: pulse-border 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-border {
+            0%, 100% {
+                box-shadow: 0 6px 24px rgba(168, 85, 247, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
+            }
+            50% {
+                box-shadow: 0 8px 32px rgba(168, 85, 247, 0.8), 0 0 0 3px rgba(255, 255, 255, 0.3) !important;
+            }
         }
         
         .custom-marker-with-photo.past .marker-photo-container {
-            border-color: var(--muted);
-            opacity: 0.7;
+            border-color: rgb(156, 163, 175) !important;
+            opacity: 0.6;
+            filter: grayscale(0.5);
         }
         
         .custom-marker-with-photo:hover {
-            transform: scale(1.2);
+            transform: scale(1.25) translateY(-6px);
             z-index: 1000;
+            filter: drop-shadow(0 8px 24px rgba(168, 85, 247, 0.6));
         }
         
         .custom-marker-with-photo:hover .marker-photo-container {
-            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.7);
+            box-shadow: 0 10px 40px rgba(168, 85, 247, 0.8), 0 0 0 3px rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
         }
         
+        .custom-marker-with-photo:hover .marker-photo {
+            transform: scale(1.1);
+        }
+        
+        .custom-marker-with-photo:hover .marker-pin-shadow {
+            border-top-color: rgba(0, 0, 0, 0.5);
+            transform: translateX(-50%) scale(1.2);
+        }
+        
+        /* Popup amélioré */
         .leaflet-popup.concert-popup-wrapper .leaflet-popup-content-wrapper {
             background: var(--panel);
             color: var(--text);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 0;
             border: 1px solid var(--border);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(168, 85, 247, 0.2);
             max-width: 400px;
+            backdrop-filter: blur(20px);
         }
         
         .leaflet-popup.concert-popup-wrapper .leaflet-popup-content {
             margin: 0;
             padding: 0;
+        }
+        
+        .leaflet-popup.concert-popup-wrapper .leaflet-popup-tip {
+            background: var(--panel);
+            border: 1px solid var(--border);
+        }
+        
+        .leaflet-popup.concert-popup-wrapper .leaflet-popup-close-button {
+            color: var(--muted) !important;
+            font-size: 24px !important;
+            padding: 8px !important;
+            transition: all 0.3s ease !important;
+            border-radius: 50% !important;
+        }
+        
+        .leaflet-popup.concert-popup-wrapper .leaflet-popup-close-button:hover {
+            color: var(--accent) !important;
+            background: rgba(168, 85, 247, 0.1) !important;
+            transform: rotate(90deg) scale(1.1) !important;
         }
         
         .concert-popup {
@@ -711,17 +834,23 @@ function initConcertsMap() {
             display: flex;
             gap: 1rem;
             padding: 1.5rem;
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1));
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(236, 72, 153, 0.15));
             border-bottom: 1px solid var(--border);
         }
         
         .popup-artist-image {
             width: 80px;
             height: 80px;
-            border-radius: 12px;
+            border-radius: 14px;
             object-fit: cover;
-            border: 2px solid var(--accent);
+            border: 3px solid var(--accent);
             flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
+            transition: transform 0.3s ease;
+        }
+        
+        .popup-artist-image:hover {
+            transform: scale(1.05);
         }
         
         .popup-artist-info {
@@ -731,8 +860,12 @@ function initConcertsMap() {
         .popup-artist-info h4 {
             margin: 0 0 0.5rem;
             color: var(--accent);
-            font-size: 1.25rem;
+            font-size: 1.3rem;
             font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
         .popup-location {
@@ -746,6 +879,7 @@ function initConcertsMap() {
         
         .popup-location i {
             color: var(--accent);
+            font-size: 1.1em;
         }
         
         .popup-city {
@@ -823,6 +957,11 @@ function initConcertsMap() {
             margin: 0.25rem 0;
             color: var(--muted);
             font-size: 0.85em;
+            transition: color 0.2s ease;
+        }
+        
+        .popup-dates li:hover {
+            color: var(--accent);
         }
         
         .no-dates {
@@ -844,34 +983,44 @@ function initConcertsMap() {
             padding: 0.75rem 1.5rem;
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             color: white;
-            border-radius: 10px;
+            border-radius: 12px;
             text-decoration: none;
             font-weight: 600;
             font-size: 0.9rem;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
             justify-content: center;
+            box-shadow: 0 4px 16px rgba(168, 85, 247, 0.3);
         }
         
         .btn-popup:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(168, 85, 247, 0.5);
+            background: linear-gradient(135deg, var(--accent-hover), var(--accent-2-hover));
         }
         
-        .leaflet-popup-tip {
-            background: var(--panel);
-            border: 1px solid var(--border);
+        .btn-popup:active {
+            transform: translateY(-1px);
         }
         
-        .leaflet-popup-close-button {
+        /* Attribution moderne */
+        .leaflet-control-attribution {
+            background: rgba(20, 24, 36, 0.9) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(168, 85, 247, 0.2) !important;
+            border-radius: 8px !important;
+            padding: 6px 12px !important;
             color: var(--muted) !important;
-            font-size: 20px !important;
-            padding: 8px !important;
-            transition: color 0.2s ease;
+            font-size: 11px !important;
         }
         
-        .leaflet-popup-close-button:hover {
-            color: var(--text) !important;
+        .leaflet-control-attribution a {
+            color: var(--accent) !important;
+            transition: color 0.2s ease !important;
+        }
+        
+        .leaflet-control-attribution a:hover {
+            color: var(--accent-2) !important;
         }
     `;
     document.head.appendChild(style);
