@@ -10,15 +10,21 @@ import (
 // LoadTemplates charge tous les templates avec les fonctions définies
 func LoadTemplates() (map[string]*template.Template, error) {
 	funcMap := GetFuncMap()
-	pages := []string{"home.html", "artist.html"}
+	pages := []string{"home.html", "artist.html", "landing.html", "login.html", "register.html"}
 	result := make(map[string]*template.Template, len(pages))
-	
+
 	for _, page := range pages {
 		var files []string
 		if page == "home.html" {
 			files = []string{"templates/layout/layout.html", "templates/home/home.html"}
 		} else if page == "artist.html" {
 			files = []string{"templates/layout/layout.html", "templates/artist/artist.html"}
+		} else if page == "landing.html" {
+			files = []string{"templates/layout/layout.html", "templates/landing/landing.html"}
+		} else if page == "login.html" {
+			files = []string{"templates/layout/layout.html", "templates/auth/login.html"}
+		} else if page == "register.html" {
+			files = []string{"templates/layout/layout.html", "templates/auth/register.html"}
 		}
 		tmpl, err := template.New("layout").Funcs(funcMap).ParseFiles(files...)
 		if err != nil {
@@ -26,7 +32,7 @@ func LoadTemplates() (map[string]*template.Template, error) {
 		}
 		result[page] = tmpl
 	}
-	
+
 	return result, nil
 }
 
@@ -41,4 +47,3 @@ func RenderTemplate(w http.ResponseWriter, templates map[string]*template.Templa
 		log.Printf("template %s: %v", name, err)
 	}
 }
-
