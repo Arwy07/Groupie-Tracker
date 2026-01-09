@@ -177,9 +177,6 @@
 
 {{define "pageScripts"}}
 <script>
-// Passer les données de l'artiste au JavaScript
-window.__ARTIST = {{toJSON .Artist}};
-
 // Fonction utilitaire pour formater les dates
 function formatDate(dateString, format) {
     const date = new Date(dateString);

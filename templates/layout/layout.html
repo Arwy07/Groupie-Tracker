@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/assets/styles/style/style.css">
+    <link rel="stylesheet" href="/assets/styles/style/favorites.css">
     {{block "head" .}}{{end}}
 </head>
 <body>
@@ -31,21 +32,25 @@
     </button>
     
     <nav class="main-nav" id="main-navigation">
-        <a href="#map" class="nav-link" data-nav="map">
+        <a href="/home#map" class="nav-link" data-nav="map">
             <i class="fas fa-map-marked-alt"></i>
             <span>Carte</span>
         </a>
-        <a href="#artists-panel" class="nav-link">
+        <a href="/home#artists-panel" class="nav-link">
             <i class="fas fa-users"></i>
             <span>Artistes</span>
         </a>
-        <a href="#concerts" class="nav-link">
+        <a href="/home#concerts" class="nav-link">
             <i class="fas fa-calendar-alt"></i>
             <span>Concerts</span>
         </a>
-        <a href="#statistiques" class="nav-link">
+        <a href="/home#statistiques" class="nav-link">
             <i class="fas fa-chart-line"></i>
             <span>Statistiques</span>
+        </a>
+        <a href="/profile" class="nav-link">
+            <i class="fas fa-user-circle"></i>
+            <span>Mon Profil</span>
         </a>
     </nav>
     

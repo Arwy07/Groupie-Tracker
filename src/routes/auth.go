@@ -7,6 +7,7 @@ import (
 
 	"groupie/src/models"
 	"groupie/src/support/db"
+	"groupie/src/support/session"
 	"groupie/src/support/templates"
 
 	"golang.org/x/crypto/bcrypt"
@@ -54,7 +55,12 @@ func (h *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Connexion réussie -> Redirection vers /home
+		// Connexion réussie
+		if err := session.CreateSession(w, user.ID); err != nil {
+			http.Error(w, "Erreur lors de la création de session", http.StatusInternalServerError)
+			return
+		}
+
 		http.Redirect(w, r, "/home", http.StatusSeeOther)
 	}
 }

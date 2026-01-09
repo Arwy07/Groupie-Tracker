@@ -10,7 +10,7 @@ import (
 // LoadTemplates charge tous les templates avec les fonctions définies
 func LoadTemplates() (map[string]*template.Template, error) {
 	funcMap := GetFuncMap()
-	pages := []string{"home.html", "artist.html", "landing.html", "login.html", "register.html"}
+	pages := []string{"home.html", "artist.html", "landing.html", "login.html", "register.html", "profile.html"}
 	result := make(map[string]*template.Template, len(pages))
 
 	for _, page := range pages {
@@ -25,6 +25,8 @@ func LoadTemplates() (map[string]*template.Template, error) {
 			files = []string{"templates/layout/layout.html", "templates/auth/login.html"}
 		} else if page == "register.html" {
 			files = []string{"templates/layout/layout.html", "templates/auth/register.html"}
+		} else if page == "profile.html" {
+			files = []string{"templates/layout/layout.html", "templates/user/profile.html"}
 		}
 		tmpl, err := template.New("layout").Funcs(funcMap).ParseFiles(files...)
 		if err != nil {

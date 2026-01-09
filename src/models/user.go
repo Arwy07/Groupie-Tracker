@@ -6,7 +6,10 @@ import "time"
 type User struct {
 	ID        int       `json:"id"`
 	Email     string    `json:"email"`
-	Password  string    `json:"-"` // Le mot de passe ne doit jamais être renvoyé en JSON
+	Password  string    `json:"-"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Avatar    string    `json:"avatar"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

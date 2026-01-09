@@ -58,7 +58,7 @@ func createDatabase() error {
 }
 
 func createTables() error {
-	query := `
+	usersQuery := `
 	CREATE TABLE IF NOT EXISTS users (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		email VARCHAR(255) NOT NULL UNIQUE,
@@ -66,9 +66,54 @@ func createTables() error {
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);`
 
-	_, err := DB.Exec(query)
+	_, err := DB.Exec(usersQuery)
 	if err != nil {
-		return fmt.Errorf("erreur lors de la création des tables: %w", err)
+		return fmt.Errorf("erreur lors de la création de la table users: %w", err)
 	}
+
+	favoritesQuery := `
+	CREATE TABLE IF NOT EXISTS favorites (
+		user_id INT,
+		artist_id INT,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (user_id, artist_id),
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+	);`
+
+	_, err = DB.Exec(favoritesQuery)
+	if err != nil {
+		return fmt.Errorf("erreur lors de la création de la table favorites: %w", err)
+	}
+
+	sessionsQuery := `
+	CREATE TABLE IF NOT EXISTS sessions (
+		token VARCHAR(255) PRIMARY KEY,
+		user_id INT NOT NULL,
+		expires_at TIMESTAMP NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+	);`
+
+	_, err = DB.Exec(sessionsQuery)
+	if err != nil {
+		return fmt.Errorf("erreur lors de la création de la table sessions: %w", err)
+	}
+
+	return migrateTables()
+}
+
+func migrateTables() error {
+	// Add columns to users table if they don't exist
+	// We ignore errors here as it's a simple way to handle "duplicate column" for this project scale
+	alterQueries := []string{
+		"ALTER TABLE users ADD COLUMN first_name VARCHAR(255) DEFAULT ''",
+		"ALTER TABLE users ADD COLUMN last_name VARCHAR(255) DEFAULT ''",
+		"ALTER TABLE users ADD COLUMN avatar VARCHAR(255) DEFAULT ''",
+	}
+
+	for _, query := range alterQueries {
+		DB.Exec(query) // Ignore error
+	}
+
 	return nil
 }

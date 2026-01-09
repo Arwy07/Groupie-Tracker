@@ -54,6 +54,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const concerts = Array.isArray(artist.concerts) ? artist.concerts : [];
       const memberPreview = members.slice(0, 3).map((member) => `<span>${member}</span>`).join("");
       const extraMembers = members.length > 3 ? `<span>+${members.length - 3}</span>` : "";
+      const isFavorite = artist.isFavorite;
+      const favClass = isFavorite ? "fas fa-star" : "far fa-star";
+      const favActive = isFavorite ? "active" : "";
+
       const uniqueCities = new Set(
         concerts.map((concert) => concert.displayLocation || "Lieu non renseigné")
       ).size;
@@ -65,6 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
       card.innerHTML = `
         <div class="artist-card__visual">
           <img src="${artist.image}" alt="${artist.name}">
+          <button class="favorite-btn ${favActive}" data-id="${artist.id}" title="${isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
+            <i class="${favClass}"></i>
+          </button>
         </div>
         <div class="artist-card__content">
           <div class="artist-card__topline">
@@ -97,6 +104,49 @@ document.addEventListener("DOMContentLoaded", () => {
       fragment.appendChild(card);
     });
     grid.appendChild(fragment);
+    
+    // Add event listeners for favorite buttons
+    document.querySelectorAll('.favorite-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const artistId = parseInt(btn.dataset.id);
+        const icon = btn.querySelector('i');
+        const isFav = btn.classList.contains('active');
+        const action = isFav ? 'remove' : 'add';
+        
+        try {
+          const response = await fetch('/api/user/favorite', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ artistId, action })
+          });
+          
+          if (response.ok) {
+            btn.classList.toggle('active');
+            if (action === 'add') {
+              icon.classList.remove('far');
+              icon.classList.add('fas');
+              btn.title = 'Retirer des favoris';
+            } else {
+              icon.classList.remove('fas');
+              icon.classList.add('far');
+              btn.title = 'Ajouter aux favoris';
+            }
+          } else if (response.status === 401) {
+            window.location.href = '/login';
+          } else {
+            console.error('Erreur lors de la mise à jour des favoris');
+          }
+        } catch (error) {
+          console.error('Erreur:', error);
+        }
+      });
+    });
+
     updateTotal(artists.length);
   };
 

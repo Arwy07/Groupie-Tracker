@@ -32,6 +32,6 @@ type HomePageData struct {
 
 // ArtistPageData contient les données pour la page d'un artiste
 type ArtistPageData struct {
-	Artist Artist
+	Artist     Artist
+	ArtistJSON template.JS
 }
-
