@@ -2,8 +2,10 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -52,14 +54,39 @@ func (g *GeocodeService) LookupCoordinates(ctx context.Context, location string)
 
 // geocode effectue le géocodage via OpenStreetMap Nominatim
 func (g *GeocodeService) geocode(ctx context.Context, location string) (*models.Coordinates, error) {
-	query := fmt.Sprintf("https://nominatim.openstreetmap.org/search?format=json&limit=1&q=%s", url.QueryEscape(location))
+	// Utiliser l'API Nominatim avec un User-Agent approprié
+	baseURL := "https://nominatim.openstreetmap.org/search"
+	params := url.Values{}
+	params.Set("format", "json")
+	params.Set("limit", "1")
+	params.Set("q", location)
+	params.Set("addressdetails", "1")
+	
+	query := fmt.Sprintf("%s?%s", baseURL, params.Encode())
 	
 	var results []struct {
 		Lat string `json:"lat"`
 		Lon string `json:"lon"`
 	}
 	
-	if err := g.Client.FetchJSON(ctx, query, &results); err != nil {
+	// Créer une requête avec User-Agent personnalisé pour Nominatim
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", "GroupieTracker/1.0 (Educational Project)")
+	
+	resp, err := g.Client.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("geocoding failed: status %d", resp.StatusCode)
+	}
+	
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
 		return nil, err
 	}
 	

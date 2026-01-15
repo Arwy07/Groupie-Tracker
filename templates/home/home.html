@@ -4,45 +4,94 @@
 
 {{define "content"}}
 <section class="hero hero--full">
-    <div class="hero__text">
-        <p class="eyebrow">Cartographie live</p>
-        <h1>Suivre les tournées sans bruit visuel</h1>
-        <p class="lede">
-            L’interface regroupe filtres avancés, recherche intelligente et fiches détaillées.
-            Tout est rafraîchi côté serveur pour rester fiable quelles que soient les datas.
-        </p>
-        <div class="hero__cta">
-            <button type="button" class="primary-btn" data-open-filters>Configurer les filtres</button>
-            <a class="ghost-btn" href="#artists-panel">Voir la galerie</a>
+    <div class="hero__content">
+        <div class="hero__text">
+            <div class="hero__badge">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Cartographie live</span>
+            </div>
+            <h1>Découvrez les tournées musicales en temps réel</h1>
+            <p class="lede">
+                Explorez les concerts de vos artistes préférés avec une interface intuitive. 
+                Filtrez, recherchez et visualisez toutes les dates sur une carte interactive.
+            </p>
+            <div class="hero__cta">
+                <button type="button" class="primary-btn btn-modern" data-open-filters>
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Configurer les filtres</span>
+                </button>
+                <a class="ghost-btn btn-modern" href="#artists-panel">
+                    <i class="fas fa-images"></i>
+                    <span>Voir la galerie</span>
+                </a>
+            </div>
         </div>
-        <dl class="hero__metrics">
-            <div>
-                <dt>Créations couvertes</dt>
-                <dd>{{.FilterMeta.CreationMin}} – {{.FilterMeta.CreationMax}}</dd>
+        <div class="hero__metrics">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Créations couvertes</dt>
+                    <dd>{{.FilterMeta.CreationMin}} – {{.FilterMeta.CreationMax}}</dd>
+                </div>
             </div>
-            <div>
-                <dt>Premiers albums</dt>
-                <dd>{{.FilterMeta.AlbumMin}} – {{.FilterMeta.AlbumMax}}</dd>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-compact-disc"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Premiers albums</dt>
+                    <dd>{{.FilterMeta.AlbumMin}} – {{.FilterMeta.AlbumMax}}</dd>
+                </div>
             </div>
-            <div>
-                <dt>Villes suivies</dt>
-                <dd>{{len .FilterMeta.Locations}}</dd>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Villes suivies</dt>
+                    <dd>{{len .FilterMeta.Locations}}</dd>
+                </div>
             </div>
-        </dl>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Artistes</dt>
+                    <dd id="total-artists-count">{{len .FilterMeta.Locations}}</dd>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="hero__visual">
-        <div class="hero__orbit">
-            <div class="hero__orbit-track"></div>
-            <div class="hero__orbit-glow"></div>
+</section>
+
+<section id="map" class="map-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Carte mondiale</p>
+            <h2>Visualisez tous les concerts sur la carte</h2>
+            <p>Explorez les lieux de concert de tous les artistes en un coup d'œil.</p>
         </div>
-        <div class="hero__card">
-            <p>API Groupie Tracker</p>
-            <h3>Flux live monitoré</h3>
-            <ul>
-                <li>Go + Leaflet + cache maison</li>
-                <li>Suggestions multi sources</li>
-                <li>Cartes artistes enrichies</li>
-            </ul>
+    </div>
+    <div class="map-container-global">
+        <div id="global-map" class="map-wrapper-global">
+            <div class="map-loading">
+                <div class="spinner"></div>
+                <p>Chargement de la carte...</p>
+                <div class="loading-progress" style="margin-top: 1rem; font-size: 0.9rem; color: var(--muted);"></div>
+            </div>
+        </div>
+        <div class="map-legend">
+            <div class="legend-item">
+                <span class="legend-color" style="background: linear-gradient(135deg, var(--accent), var(--accent-2));"></span>
+                <span>Concerts à venir</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: var(--muted);"></span>
+                <span>Concerts passés</span>
+            </div>
         </div>
     </div>
 </section>
@@ -54,11 +103,23 @@
         <p>On ouvre le tiroir uniquement quand on en a besoin. Les badges résument l’état actuel.</p>
     </div>
     <div class="control-panel__actions">
-        <button type="button" class="primary-btn" data-open-filters>Ouvrir le tiroir</button>
+        <button type="button" class="primary-btn btn-modern" data-open-filters>
+            <i class="fas fa-filter"></i>
+            <span>Ouvrir les filtres</span>
+        </button>
         <div class="control-panel__badges">
-            <span>{{.FilterMeta.CreationMin}} - {{.FilterMeta.CreationMax}} création</span>
-            <span>{{.FilterMeta.MembersMin}} - {{.FilterMeta.MembersMax}} membres</span>
-            <span>{{len .FilterMeta.Locations}} lieux possibles</span>
+            <span class="badge-item">
+                <i class="fas fa-calendar"></i>
+                {{.FilterMeta.CreationMin}} - {{.FilterMeta.CreationMax}} création
+            </span>
+            <span class="badge-item">
+                <i class="fas fa-users"></i>
+                {{.FilterMeta.MembersMin}} - {{.FilterMeta.MembersMax}} membres
+            </span>
+            <span class="badge-item">
+                <i class="fas fa-map-marker-alt"></i>
+                {{len .FilterMeta.Locations}} lieux
+            </span>
         </div>
     </div>
 </section>
@@ -146,69 +207,139 @@
             <h2>Grille pilotée par les filtres</h2>
             <p>Chaque carte se met à jour instantanément après une requête Go.</p>
         </div>
-        <button class="ghost-btn" type="button" data-open-filters>Modifier les filtres</button>
+        <button class="ghost-btn btn-modern" type="button" data-open-filters>
+            <i class="fas fa-edit"></i>
+            <span>Modifier les filtres</span>
+        </button>
     </div>
     <div id="artists" class="card-gallery"></div>
 </section>
 
-<section id="insights" class="insight-grid">
-    <article class="insight-card">
-        <p class="eyebrow">Instantané</p>
-        <h3 id="total-artists">0 artiste visible</h3>
-        <p>Le compteur affiche exactement ce qui est rendu dans la grille.</p>
-    </article>
-    <article class="insight-card">
-        <p class="eyebrow">Cartographie</p>
-        <h3>Leaflet embarqué</h3>
-        <p>Chaque fiche charge les concerts sur carte avec clustering natif.</p>
-    </article>
-    <article class="insight-card">
-        <p class="eyebrow">Pipeline</p>
-        <h3>Backend Go optimisé</h3>
-        <p>Refresh manuel, cache mémoire et parallélisation pour tenir la charge.</p>
-    </article>
+<section id="concerts" class="concerts-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Calendrier des concerts</p>
+            <h2>Tous les concerts à venir</h2>
+            <p>Découvrez les prochains concerts de tous les artistes suivis sur la carte interactive.</p>
+        </div>
+    </div>
+    <div class="concerts-map-container">
+        <div id="concerts-map" class="concerts-map-wrapper">
+            <div class="map-loading">
+                <div class="spinner"></div>
+                <p>Chargement des concerts...</p>
+                <div class="loading-progress" style="margin-top: 1rem; font-size: 0.9rem; color: var(--muted);"></div>
+            </div>
+        </div>
+        <div class="map-legend">
+            <div class="legend-item">
+                <span class="legend-color" style="background: linear-gradient(135deg, var(--accent), var(--accent-2));"></span>
+                <span>Concerts à venir</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: var(--muted);"></span>
+                <span>Concerts passés</span>
+            </div>
+        </div>
+    </div>
 </section>
 
-<section class="doc-guides" id="guides">
-    <article class="doc-card">
-        <p class="eyebrow">Relations</p>
-        <h3>Mapper les clés dynamiques</h3>
-        <p>
-            Les clés <code>datesLocations</code> sont imprévisibles : utilisez un
-            <code>map[string][]string</code> pour hydrater les villes côté Go.
-        </p>
-        <pre class="code-block">type Date struct {
-    Id int `json:"id"`
-    DatesLocations map[string][]string `json:"datesLocations"`
-}</pre>
-    </article>
-    <article class="doc-card">
-        <p class="eyebrow">Go → JS</p>
-        <h3>Sérialiser proprement</h3>
-        <p>
-            On pousse les artistes dans <code>window.__ARTISTS</code> puis on pilote la grille depuis
-            <code>static/js/app.js</code>.
-        </p>
-        <pre class="code-block">{{"{{"}} range .Artists {{"}}"}}<script>
-tableauAvecTousLesArtistes.push(`{{"{{"}} . {{"}}"}}`)
-</script>{{"{{"}} end {{"}}"}}</pre>
-    </article>
-    <article class="doc-card">
-        <p class="eyebrow">Range clé / valeur</p>
-        <h3>Afficher les maps</h3>
-        <p>Les relations ville → dates se parcourent en Go template via <code>range</code>.</p>
-        <pre class="code-block">{{"{{"}} range $key, $value := .VotreMap {{"}}"}}
-<p>{{"{{"}} $key {{"}}"}}</p>
-<p>{{"{{"}} $value {{"}}"}}</p>
-{{"{{"}} end {{"}}"}}</pre>
-    </article>
+<section id="statistiques" class="statistiques-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Statistiques globales</p>
+            <h2>Vue d'ensemble de la plateforme</h2>
+            <p>Analysez les données de tous les artistes et concerts.</p>
+        </div>
+    </div>
+    <div id="insights" class="insight-grid">
+        <article class="insight-card">
+            <p class="eyebrow">Instantané</p>
+            <h3 id="total-artists">0 artiste visible</h3>
+            <p>Le compteur affiche exactement ce qui est rendu dans la grille.</p>
+        </article>
+        <article class="insight-card">
+            <p class="eyebrow">Cartographie</p>
+            <h3>Leaflet embarqué</h3>
+            <p>Chaque fiche charge les concerts sur carte avec clustering natif.</p>
+        </article>
+        <article class="insight-card">
+            <p class="eyebrow">Pipeline</p>
+            <h3>Backend Go optimisé</h3>
+            <p>Refresh manuel, cache mémoire et parallélisation pour tenir la charge.</p>
+        </article>
+    </div>
+</section>
+
+<section class="footer-section" id="footer">
+    <div class="footer-content">
+        <div class="footer-column">
+            <h4>À propos</h4>
+            <ul>
+                <li><a href="#map">Carte mondiale</a></li>
+                <li><a href="#artists-panel">Artistes</a></li>
+                <li><a href="#concerts">Concerts</a></li>
+                <li><a href="#statistiques">Statistiques</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Fonctionnalités</h4>
+            <ul>
+                <li><a href="#filters">Filtres avancés</a></li>
+                <li><a href="#search">Recherche</a></li>
+                <li><a href="#map">Cartographie</a></li>
+                <li><a href="#artists-panel">Galerie</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Informations</h4>
+            <ul>
+                <li><a href="#">À propos</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#">FAQ</a></li>
+                <li><a href="#">Mentions légales</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Ressources</h4>
+            <ul>
+                <li><a href="#">Documentation</a></li>
+                <li><a href="#">API</a></li>
+                <li><a href="#">Support</a></li>
+                <li><a href="#">Changelog</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <div class="footer-brand">
+            <span>
+                <i class="fas fa-globe-americas"></i>
+                Groupie Tracker
+            </span>
+        </div>
+        <div class="footer-copyright">
+            <p>&copy; 2025 Groupie Tracker. Tous droits réservés.</p>
+            <p class="footer-data">Données fournies par l'API Groupie Tracker</p>
+        </div>
+    </div>
 </section>
 {{end}}
 
 {{define "pageScripts"}}
 <script>
 window.__ARTISTS = {{.ArtistsJSON}};
+// Mettre à jour le nombre d'artistes
+document.addEventListener('DOMContentLoaded', function() {
+    const artistsCount = window.__ARTISTS ? window.__ARTISTS.length : 0;
+    const countElement = document.getElementById('total-artists-count');
+    if (countElement && artistsCount > 0) {
+        countElement.textContent = artistsCount + ' groupes';
+    }
+});
 </script>
 <script src="/script/app/app.js" defer></script>
+<script src="/script/app/map.js" defer></script>
+<script src="/script/app/concerts-map.js" defer></script>
 {{end}}
+
 

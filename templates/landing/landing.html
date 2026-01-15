@@ -1,0 +1,71 @@
+{{define "landing.html"}}
+{{template "layout" .}}
+{{end}}
+
+{{define "head"}}
+<style>
+    .landing-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 80vh;
+        text-align: center;
+        color: var(--text-color);
+    }
+    .landing-title {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(45deg, var(--primary-color, #3498db), var(--secondary-color, #9b59b6));
+        -webkit-text-fill-color: transparent;
+    }
+    .landing-subtitle {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        opacity: 0.8;
+    }
+    .landing-actions {
+        display: flex;
+        gap: 1rem;
+    }
+    .btn-landing {
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: transform 0.2s;
+        background-color: var(--primary-color, #3498db);
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-landing:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .btn-secondary {
+        background-color: transparent;
+        border: 2px solid var(--primary-color, #3498db);
+        color: var(--text-color);
+    }
+    
+    /* Masquer la navigation et les actions sur la landing page */
+    .main-nav, .header-actions, .menu-toggle {
+        display: none !important;
+    }
+</style>
+{{end}}
+
+{{define "content"}}
+<div class="landing-container">
+    <h1 class="landing-title">Bienvenue sur Groupie Tracker</h1>
+    <p class="landing-subtitle">Découvrez les artistes, leurs concerts et suivez leurs tournées mondiales.</p>
+    
+    <div class="landing-actions">
+        <a href="/home" class="btn-landing">Accéder au site</a>
+        <!-- Ces boutons seront fonctionnels plus tard -->
+        <a href="/login" class="btn-landing btn-secondary">Connexion</a>
+        <a href="/register" class="btn-landing btn-secondary">Inscription</a>
+    </div>
+</div>
+{{end}}

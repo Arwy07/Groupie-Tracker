@@ -1,12 +1,26 @@
-document.addEventListener('DOMContentLoaded', () => {
+// Fonction d'initialisation de la carte artiste
+function initArtistMap() {
     const target = document.getElementById('artist-map');
     const artist = window.__ARTIST;
     
-    if (!target || !artist) return;
+    if (!target || !artist) {
+        console.warn('Carte artiste: conteneur ou données artiste introuvables');
+        return;
+    }
     
     // Vérifier si Leaflet est chargé
     if (typeof L === 'undefined') {
+        console.error('Leaflet n\'est pas disponible pour la carte artiste');
         showMapError(target, 'Leaflet n\'a pas pu être chargé. Vérifiez votre connexion.');
+        return;
+    }
+    
+    console.log('Initialisation de la carte artiste pour:', artist.name);
+    
+    // S'assurer que le conteneur a une taille définie
+    if (target.offsetHeight === 0 || target.offsetWidth === 0) {
+        console.warn('Conteneur de carte sans dimensions, attente...');
+        setTimeout(() => initArtistMap(), 100);
         return;
     }
     
@@ -18,8 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
         doubleClickZoom: true,
         boxZoom: true,
         keyboard: true,
-        fadeAnimation: true,
-        zoomAnimation: true,
+        fadeAnimation: false, // Désactiver pour chargement plus rapide
+        zoomAnimation: false, // Désactiver pour chargement plus rapide
         attributionControl: false
     });
     
@@ -30,26 +44,77 @@ document.addEventListener('DOMContentLoaded', () => {
         zoomOutTitle: 'Zoom arrière'
     }).addTo(map);
     
-    // Ajouter la couche de tuiles OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Ajouter la couche de tuiles (utiliser CartoDB qui est plus fiable)
+    const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
         maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         detectRetina: true
-    }).addTo(map);
+    });
+    
+    // Fallback si CartoDB ne fonctionne pas
+    tileLayer.on('tileerror', function() {
+        console.warn('Erreur de chargement des tuiles CartoDB, basculement vers OpenStreetMap...');
+        this.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    });
+    
+    tileLayer.addTo(map);
     
     // Variables pour stocker les marqueurs et les limites
     const markers = [];
     const bounds = [];
     let hasValidLocations = false;
     
+    // Fonction pour filtrer les dates à venir
+    function getUpcomingDates(dates) {
+        if (!dates || dates.length === 0) return [];
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const upcomingDates = [];
+        for (const dateStr of dates) {
+            try {
+                const [day, month, year] = dateStr.split('-').map(Number);
+                const fullYear = year < 100 ? 2000 + year : year;
+                const concertDate = new Date(fullYear, month - 1, day);
+                concertDate.setHours(0, 0, 0, 0);
+                
+                if (concertDate >= today) {
+                    upcomingDates.push(dateStr);
+                }
+            } catch (e) {
+                // Ignorer les dates invalides
+            }
+        }
+        
+        // Trier par date
+        upcomingDates.sort((a, b) => {
+            try {
+                const [dayA, monthA, yearA] = a.split('-').map(Number);
+                const [dayB, monthB, yearB] = b.split('-').map(Number);
+                const fullYearA = yearA < 100 ? 2000 + yearA : yearA;
+                const fullYearB = yearB < 100 ? 2000 + yearB : yearB;
+                const dateA = new Date(fullYearA, monthA - 1, dayA);
+                const dateB = new Date(fullYearB, monthB - 1, dayB);
+                return dateA - dateB;
+            } catch {
+                return 0;
+            }
+        });
+        
+        return upcomingDates;
+    }
+    
     // Fonction pour créer le contenu du popup
     function createPopupContent(concert) {
-        const datesList = concert.dates && concert.dates.length > 0
+        const upcomingDates = getUpcomingDates(concert.dates);
+        const datesList = upcomingDates.length > 0
             ? `<div class="popup-dates">
-                  <strong>Dates :</strong>
-                  <ul>${concert.dates.map(date => `<li>${date}</li>`).join('')}</ul>
+                  <strong><i class="fas fa-calendar-alt"></i> Prochains concerts :</strong>
+                  <ul>${upcomingDates.map(date => `<li>${date}</li>`).join('')}</ul>
               </div>`
-            : '<p>Aucune date disponible</p>';
+            : '<p class="no-dates"><i class="fas fa-calendar-times"></i> Aucun concert à venir</p>';
         
         return `
             <div class="map-popup">
@@ -69,12 +134,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ajouter les marqueurs pour chaque concert
     if (Array.isArray(artist.concerts)) {
         artist.concerts.forEach((concert) => {
-            if (!concert.coordinates || !concert.coordinates.lat || !concert.coordinates.lng) {
-                console.warn(`Coordonnées manquantes pour: ${concert.displayLocation || 'Lieu inconnu'}`);
+            // Vérifier les coordonnées avec les deux formats possibles
+            let lat, lng;
+            if (concert.coordinates) {
+                // Format avec lat/lng (format JSON)
+                if (concert.coordinates.lat !== undefined && concert.coordinates.lng !== undefined) {
+                    lat = parseFloat(concert.coordinates.lat);
+                    lng = parseFloat(concert.coordinates.lng);
+                }
+                // Format avec latitude/longitude (format Go struct)
+                else if (concert.coordinates.latitude !== undefined && concert.coordinates.longitude !== undefined) {
+                    lat = parseFloat(concert.coordinates.latitude);
+                    lng = parseFloat(concert.coordinates.longitude);
+                }
+            }
+            
+            if (lat === undefined || lng === undefined || isNaN(lat) || isNaN(lng)) {
+                console.warn(`Coordonnées manquantes ou invalides pour: ${concert.displayLocation || 'Lieu inconnu'}`, concert.coordinates);
                 return;
             }
             
-            const { lat, lng } = concert.coordinates;
+            // S'assurer que les coordonnées sont valides
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                console.warn(`Coordonnées hors limites pour: ${concert.displayLocation || 'Lieu inconnu'}`, lat, lng);
+                return;
+            }
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
@@ -85,15 +169,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 return concertDate >= today;
             });
             
-            // Créer le marqueur personnalisé
+            // Créer le marqueur personnalisé avec une icône Leaflet standard d'abord
+            const markerIcon = L.divIcon({
+                className: `custom-marker ${hasUpcoming ? 'upcoming' : 'past'}`,
+                html: '<div class="marker-pin"></div>',
+                iconSize: [30, 42],
+                iconAnchor: [15, 42],
+                popupAnchor: [0, -36]
+            });
+            
             const marker = L.marker([lat, lng], {
-                icon: L.divIcon({
-                    className: `custom-marker ${hasUpcoming ? 'upcoming' : 'past'}`,
-                    html: '<div class="marker-pin"></div>',
-                    iconSize: [30, 42],
-                    iconAnchor: [15, 42],
-                    popupAnchor: [0, -36]
-                })
+                icon: markerIcon
             });
             
             // Ajouter le popup
@@ -201,9 +287,34 @@ document.addEventListener('DOMContentLoaded', () => {
     window.map = map;
     window.markers = markers;
     
-    // Ajouter des styles CSS pour les marqueurs personnalisés
+    // Ajouter des styles CSS pour les marqueurs personnalisés et forcer la taille
     const style = document.createElement('style');
     style.textContent = `
+        #artist-map {
+            width: 100% !important;
+            height: 500px !important;
+            min-height: 500px !important;
+            max-height: 500px !important;
+            position: relative !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+        }
+        
+        #artist-map .leaflet-container {
+            width: 100% !important;
+            height: 100% !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            z-index: 1 !important;
+        }
+        
+        #artist-map .leaflet-pane {
+            z-index: 2 !important;
+        }
+        
         .custom-marker {
             position: relative;
             width: 30px;
@@ -380,5 +491,68 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingElement.style.display = 'none';
         }, 300);
     }
-});
+    
+    // Exposer la carte globalement pour les autres scripts
+    window.artistMap = map;
+    window.artistMarkers = markers;
+    window.map = map; // Alias pour compatibilité
+    window.markers = markers; // Alias pour compatibilité
+    
+    // Attendre que la carte soit complètement initialisée
+    map.whenReady(() => {
+        // Forcer le redimensionnement
+        map.invalidateSize();
+        
+        // Masquer immédiatement l'indicateur de chargement
+        const loadingElement = target.querySelector('.map-loading');
+        if (loadingElement) {
+            loadingElement.style.opacity = '0';
+            setTimeout(() => {
+                loadingElement.style.display = 'none';
+            }, 300);
+        }
+        
+        console.log(`✅ Carte initialisée avec ${markers.length} marqueurs`);
+    });
+}
+
+// Initialiser quand le DOM est prêt et que Leaflet est chargé
+function initializeArtistMapWhenReady() {
+    // Vérifier que le conteneur existe
+    const mapContainer = document.getElementById('artist-map');
+    if (!mapContainer) {
+        console.warn('Conteneur artist-map introuvable, réessai dans 500ms...');
+        setTimeout(initializeArtistMapWhenReady, 500);
+        return;
+    }
+    
+    // Utiliser waitForLeaflet si disponible
+    if (typeof waitForLeaflet !== 'undefined') {
+        waitForLeaflet(() => {
+            console.log('Initialisation de la carte artiste...');
+            initArtistMap();
+        });
+    } else {
+        // Fallback: vérifier manuellement
+        let attempts = 0;
+        const checkInterval = setInterval(() => {
+            attempts++;
+            if (typeof L !== 'undefined' && typeof L.map === 'function') {
+                clearInterval(checkInterval);
+                console.log('Initialisation de la carte artiste (fallback)...');
+                setTimeout(() => initArtistMap(), 100);
+            } else if (attempts >= 100) {
+                clearInterval(checkInterval);
+                console.error('❌ Leaflet non disponible après 100 tentatives pour la carte artiste');
+            }
+        }, 50);
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeArtistMapWhenReady);
+} else {
+    // DOM déjà chargé
+    initializeArtistMapWhenReady();
+}
 

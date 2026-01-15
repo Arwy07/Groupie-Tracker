@@ -10,6 +10,7 @@ import (
 	"groupie/src/config"
 	"groupie/src/game"
 	"groupie/src/models"
+	"groupie/src/support/db"
 	"groupie/src/support/templates"
 )
 
@@ -24,6 +25,11 @@ type AppInitializer struct {
 
 // InitializeApp initialise toute l'application
 func InitializeApp() (*AppInitializer, error) {
+	// Initialisation de la base de données
+	if err := db.InitDB(); err != nil {
+		return nil, err
+	}
+
 	// Chargement des templates
 	tmplSet, err := templates.LoadTemplates()
 	if err != nil {
@@ -59,4 +65,3 @@ func InitializeApp() (*AppInitializer, error) {
 		Templates:      tmplSet,
 	}, nil
 }
-
