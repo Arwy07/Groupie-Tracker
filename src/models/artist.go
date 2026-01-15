@@ -11,6 +11,7 @@ type Artist struct {
 	FirstAlbumYear int       `json:"firstAlbumYear"`
 	Concerts       []Concert `json:"concerts"`
 	Tags           []string  `json:"tags"`
+	IsFavorite     bool      `json:"isFavorite"` // Champ calculé, non présent dans l'API source
 }
 
 // Concert représente un concert avec ses dates et localisation
@@ -26,4 +27,3 @@ type Coordinates struct {
 	Latitude  float64 `json:"lat"`
 	Longitude float64 `json:"lng"`
 }
-

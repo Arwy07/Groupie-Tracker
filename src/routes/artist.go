@@ -2,6 +2,7 @@ package routes
 
 import (
 	"context"
+	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
@@ -10,8 +11,8 @@ import (
 	"time"
 
 	"groupie/src/api"
-	"groupie/src/models"
 	"groupie/src/game"
+	"groupie/src/models"
 	"groupie/src/support/templates"
 	"groupie/src/support/utils"
 )
@@ -39,7 +40,7 @@ func (h *ArtistHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		utils.RespondError(w, http.StatusBadRequest, "id d'artiste manquant")
 		return
 	}
-	
+
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		utils.RespondError(w, http.StatusBadRequest, "id invalide")
@@ -69,8 +70,14 @@ func (h *ArtistHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		art.Concerts[i].Coordinates = coords
 	}
 
-	data := models.ArtistPageData{Artist: art}
+	jsonBytes, err := json.Marshal(art)
+	if err != nil {
+		log.Printf("json marshal error: %v", err) // logged but not fatal
+	}
+
+	data := models.ArtistPageData{
+		Artist:     art,
+		ArtistJSON: template.JS(string(jsonBytes)),
+	}
 	templates.RenderTemplate(w, h.Templates, "artist.html", data)
 }
-
-

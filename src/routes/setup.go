@@ -21,6 +21,7 @@ func SetupRoutes() (http.Handler, error) {
 	homeHandler := NewHomeHandler(app.DataService, app.Templates)
 	artistHandler := NewArtistHandler(app.DataService, app.GeocodeService, app.Templates)
 	apiHandler := NewAPIHandler(app.DataService, app.GeocodeService)
+	userHandler := NewUserHandler(app.Templates)
 
 	// Configuration des routes
 	mux := http.NewServeMux()
@@ -29,12 +30,15 @@ func SetupRoutes() (http.Handler, error) {
 	mux.HandleFunc("/", landingHandler.Handle)
 	mux.HandleFunc("/login", authHandler.HandleLogin)
 	mux.HandleFunc("/register", authHandler.HandleRegister)
+	mux.HandleFunc("/logout", userHandler.HandleLogout)
+	mux.HandleFunc("/profile", userHandler.HandleProfile)
 	mux.HandleFunc("/home", homeHandler.Handle)
 	mux.HandleFunc("/artist", artistHandler.Handle)
 	mux.HandleFunc("/api/artists", apiHandler.HandleArtists)
 	mux.HandleFunc("/api/filter", apiHandler.HandleFilter)
 	mux.HandleFunc("/api/refresh", apiHandler.HandleRefresh)
 	mux.HandleFunc("/api/geocode", apiHandler.HandleGeocode)
+	mux.HandleFunc("/api/user/favorite", userHandler.HandleToggleFavorite)
 
 	return middleware.LoggingMiddleware(mux), nil
 }
