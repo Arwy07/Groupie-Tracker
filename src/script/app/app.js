@@ -52,53 +52,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const members = Array.isArray(artist.members) ? artist.members : [];
       const concerts = Array.isArray(artist.concerts) ? artist.concerts : [];
-      const memberPreview = members.slice(0, 3).map((member) => `<span>${member}</span>`).join("");
-      const extraMembers = members.length > 3 ? `<span>+${members.length - 3}</span>` : "";
       const isFavorite = artist.isFavorite;
       const favClass = isFavorite ? "fas fa-star" : "far fa-star";
       const favActive = isFavorite ? "active" : "";
 
-      const uniqueCities = new Set(
-        concerts.map((concert) => concert.displayLocation || "Lieu non renseigné")
-      ).size;
-      const concertsCount = concerts.reduce((total, concert) => {
-        const dates = Array.isArray(concert.dates) ? concert.dates : [];
-        return total + dates.length;
-      }, 0);
-
       card.innerHTML = `
         <div class="artist-card__visual">
-          <img src="${artist.image}" alt="${artist.name}">
+          <div class="vinyl-record">
+            <img src="${artist.image}" alt="${artist.name}">
+          </div>
           <button class="favorite-btn ${favActive}" data-id="${artist.id}" title="${isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
             <i class="${favClass}"></i>
           </button>
         </div>
         <div class="artist-card__content">
-          <div class="artist-card__topline">
-            <div>
-              <p class="artist-card__eyebrow">Fondé en ${artist.creationDate}</p>
-              <h3>${artist.name}</h3>
+            <h3 style="text-align: center; margin: 0 auto 1rem auto;">${artist.name}</h3>
+            <div class="artist-card__actions" style="justify-content: center; margin-top: 0;">
+                <a class="ghost-btn" href="/artist?id=${artist.id}" onclick="event.preventDefault(); window.location.href='/artist?id=${artist.id}'">Voir la fiche</a>
             </div>
-            <span class="artist-card__badge">${artist.members.length} membre(s)</span>
-          </div>
-          <p class="artist-card__lede">1er album ${artist.firstAlbum}</p>
-          <div class="artist-card__tags">
-            ${memberPreview}${extraMembers}
-          </div>
-          <div class="artist-card__stats">
-            <div>
-              <span>Villes suivies</span>
-              <strong>${uniqueCities}</strong>
-            </div>
-            <div>
-              <span>Concerts listés</span>
-              <strong>${concertsCount}</strong>
-            </div>
-          </div>
-          <div class="artist-card__actions">
-            <span>${uniqueCities} lieu(x) cartographié(s)</span>
-            <a class="ghost-btn" href="/artist?id=${artist.id}" onclick="event.preventDefault(); window.location.href='/artist?id=${artist.id}'">Voir la fiche</a>
-          </div>
         </div>
       `;
       fragment.appendChild(card);
