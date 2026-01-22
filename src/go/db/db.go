@@ -113,7 +113,7 @@ func migrateTables() error {
 	CREATE TABLE IF NOT EXISTS cart (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		user_id INT NOT NULL,
-		concert_data JSON NOT NULL,
+		concert_data TEXT NOT NULL,
 		seat_type VARCHAR(50) NOT NULL,
 		quantity INT NOT NULL DEFAULT 1,
 		price DECIMAL(10, 2) NOT NULL,
@@ -122,6 +122,10 @@ func migrateTables() error {
 		INDEX idx_user_id (user_id)
 	);`
 	DB.Exec(cartQuery)
+
+	// Migration: convertir JSON en TEXT si nécessaire
+	DB.Exec("ALTER TABLE cart MODIFY COLUMN concert_data TEXT NOT NULL")
+	DB.Exec("ALTER TABLE order_items MODIFY COLUMN concert_data TEXT NOT NULL")
 
 	ordersQuery := `
 	CREATE TABLE IF NOT EXISTS orders (
@@ -147,7 +151,7 @@ func migrateTables() error {
 	CREATE TABLE IF NOT EXISTS order_items (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		order_id INT NOT NULL,
-		concert_data JSON NOT NULL,
+		concert_data TEXT NOT NULL,
 		seat_type VARCHAR(50) NOT NULL,
 		quantity INT NOT NULL,
 		price DECIMAL(10, 2) NOT NULL,

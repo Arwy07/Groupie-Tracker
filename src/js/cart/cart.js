@@ -137,24 +137,31 @@ function loadCartItems() {
                 const itemTotal = item.price * item.quantity;
                 total += itemTotal;
                 
+                // Sécuriser l'accès aux données du concert
+                const concertData = item.concertData || {};
+                const artistImage = concertData.artistImage || '/assets/pictures/cover.png';
+                const artistName = concertData.artistName || 'Artiste inconnu';
+                const location = concertData.location || 'Lieu inconnu';
+                const dateFormatted = concertData.dateFormatted || 'Date non définie';
+                
                 return `
                     <div class="cart-item" data-item-id="${item.id}">
                         <div class="cart-item-image">
-                            <img src="${item.concertData.artistImage || '/assets/pictures/cover.png'}" alt="${item.concertData.artistName}" onerror="this.src='/assets/pictures/cover.png'">
+                            <img src="${artistImage}" alt="${artistName}" onerror="this.src='/assets/pictures/cover.png'">
                         </div>
                         <div class="cart-item-details">
-                            <h3>${item.concertData.artistName}</h3>
+                            <h3>${artistName}</h3>
                             <p class="cart-item-location">
                                 <i class="fas fa-map-marker-alt"></i>
-                                ${item.concertData.location}
+                                ${location}
                             </p>
                             <p class="cart-item-date">
                                 <i class="fas fa-calendar"></i>
-                                ${item.concertData.dateFormatted}
+                                ${dateFormatted}
                             </p>
                             <p class="cart-item-seat">
                                 <i class="fas fa-chair"></i>
-                                ${item.seatName} - ${item.quantity} billet${item.quantity > 1 ? 's' : ''}
+                                ${item.seatName || 'Place'} - ${item.quantity} billet${item.quantity > 1 ? 's' : ''}
                             </p>
                         </div>
                         <div class="cart-item-price">

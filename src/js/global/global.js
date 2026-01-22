@@ -56,6 +56,448 @@
             color: #a78bfa;
             filter: drop-shadow(0 0 16px rgba(139, 92, 246, 0.9));
         }
+        
+        /* Popup amélioré */
+        .map-popup.enhanced, .concert-popup.enhanced {
+            padding: 0;
+            min-width: 280px;
+        }
+        
+        .popup-header-enhanced {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(124, 58, 237, 0.1));
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .popup-artist-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid rgba(139, 92, 246, 0.5);
+            flex-shrink: 0;
+        }
+        
+        .popup-title-area {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .popup-title-area h4 {
+            margin: 0 0 6px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text, #fff);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-badge.upcoming {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .status-badge.past {
+            background: rgba(107, 114, 128, 0.2);
+            color: #9ca3af;
+        }
+        
+        .status-badge i {
+            font-size: 0.5rem;
+        }
+        
+        .popup-body {
+            padding: 12px;
+        }
+        
+        .popup-body .location {
+            margin: 0 0 8px;
+            font-size: 0.9rem;
+            color: var(--text, #e8ecf0);
+        }
+        
+        .popup-body .location i {
+            color: #a855f7;
+            margin-right: 6px;
+        }
+        
+        .popup-members {
+            font-size: 0.8rem;
+            color: var(--muted, #9ca3af);
+            margin-bottom: 8px;
+        }
+        
+        .popup-members i {
+            margin-right: 6px;
+            color: #8b5cf6;
+        }
+        
+        .popup-dates {
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+        
+        .popup-dates strong {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--text, #e8ecf0);
+        }
+        
+        .popup-dates ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--muted, #9ca3af);
+        }
+        
+        .popup-dates li {
+            margin: 2px 0;
+        }
+        
+        .popup-dates li.more {
+            color: #8b5cf6;
+            font-style: italic;
+        }
+        
+        .popup-actions-enhanced {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 12px 12px;
+            margin-top: 8px;
+        }
+        
+        .popup-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .popup-btn.secondary {
+            background: rgba(107, 114, 128, 0.3);
+            color: var(--text, #e8ecf0);
+        }
+        
+        .popup-btn.secondary:hover {
+            background: rgba(107, 114, 128, 0.5);
+        }
+        
+        .popup-btn.primary {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+        
+        .popup-btn.primary:hover {
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+        
+        /* Notification */
+        .map-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            background: var(--panel, #1a1f2e);
+            color: var(--text, #fff);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border, rgba(156, 163, 175, 0.15));
+        }
+        
+        .map-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .map-notification.success {
+            border-left: 4px solid #22c55e;
+        }
+        
+        .map-notification.success i {
+            color: #22c55e;
+        }
+        
+        .map-notification.warning {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .map-notification.warning i {
+            color: #f59e0b;
+        }
+        
+        .map-notification.error {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .map-notification.error i {
+            color: #ef4444;
+        }
+        
+        .map-notification i {
+            font-size: 1.3rem;
+        }
+        
+        .map-notification span {
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        
+        .map-notification small {
+            display: block;
+            color: var(--muted, #9ca3af);
+            margin-top: 2px;
+        }
+        
+        /* Modal détails artiste */
+        .artist-details-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .artist-details-modal.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .artist-details-modal .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+        }
+        
+        .artist-details-modal .modal-content {
+            position: relative;
+            background: var(--panel, #1a1f2e);
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid var(--border, rgba(156, 163, 175, 0.15));
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .artist-details-modal.is-open .modal-content {
+            transform: scale(1) translateY(0);
+        }
+        
+        .artist-details-modal .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: var(--text, #fff);
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.2s;
+        }
+        
+        .artist-details-modal .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+        
+        .artist-detail-header {
+            display: flex;
+            gap: 16px;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.1));
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .artist-detail-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 16px;
+            object-fit: cover;
+            border: 3px solid rgba(139, 92, 246, 0.5);
+            flex-shrink: 0;
+        }
+        
+        .artist-detail-info h2 {
+            margin: 0 0 8px;
+            font-size: 1.5rem;
+            color: var(--text, #fff);
+        }
+        
+        .artist-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.85rem;
+            color: var(--muted, #9ca3af);
+        }
+        
+        .artist-meta span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .artist-meta i {
+            color: #8b5cf6;
+            width: 16px;
+        }
+        
+        .artist-detail-body {
+            padding: 20px 24px;
+        }
+        
+        .detail-section {
+            margin-bottom: 20px;
+        }
+        
+        .detail-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .detail-section h3 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            color: var(--text, #fff);
+            margin: 0 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border, rgba(156, 163, 175, 0.15));
+        }
+        
+        .detail-section h3 i {
+            color: #8b5cf6;
+        }
+        
+        .members-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .member-tag {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .concerts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .concert-item-detail {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 10px;
+            border-left: 3px solid #8b5cf6;
+        }
+        
+        .concert-location {
+            font-size: 0.9rem;
+            color: var(--text, #e8ecf0);
+            margin-bottom: 4px;
+        }
+        
+        .concert-location i {
+            color: #8b5cf6;
+            margin-right: 6px;
+        }
+        
+        .concert-dates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .concert-dates span {
+            font-size: 0.75rem;
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        .artist-detail-footer {
+            padding: 16px 24px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 20px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .btn-detail {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .btn-detail.secondary {
+            background: rgba(107, 114, 128, 0.3);
+            color: var(--text, #e8ecf0);
+        }
+        
+        .btn-detail.secondary:hover {
+            background: rgba(139, 92, 246, 0.3);
+            color: #a78bfa;
+        }
     `;
     document.head.appendChild(style);
 })();
@@ -71,6 +513,177 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// Fonction globale pour ouvrir les détails de l'artiste depuis la carte
+window.openArtistDetailsFromMap = function(artistDataEncoded) {
+    const artist = JSON.parse(decodeURIComponent(artistDataEncoded));
+    
+    // Debug: afficher les données reçues
+    console.log('Artist data received:', artist);
+    console.log('Artist image URL:', artist.image);
+    
+    // Fermer les popups de carte
+    if (window.globalMap) window.globalMap.closePopup();
+    if (window.concertsMap) window.concertsMap.closePopup();
+    
+    // Créer la modal de détails
+    let modal = document.getElementById('artist-details-modal');
+    if (modal) modal.remove();
+    
+    modal = document.createElement('div');
+    modal.id = 'artist-details-modal';
+    modal.className = 'artist-details-modal';
+    
+    const membersList = artist.members && artist.members.length > 0
+        ? artist.members.map(m => `<span class="member-tag">${m}</span>`).join('')
+        : '<span class="no-members">Non renseigné</span>';
+    
+    const concertsList = artist.concerts && artist.concerts.length > 0
+        ? artist.concerts.slice(0, 8).map(c => `
+            <div class="concert-item-detail">
+                <div class="concert-location"><i class="fas fa-map-marker-alt"></i> ${c.displayLocation || c.location}</div>
+                <div class="concert-dates">${(c.dates || []).slice(0, 3).map(d => `<span>${d}</span>`).join('')}</div>
+            </div>
+        `).join('')
+        : '<p>Aucun concert</p>';
+    
+    modal.innerHTML = `
+        <div class="modal-overlay" onclick="closeArtistDetailsModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeArtistDetailsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="artist-detail-header">
+                <img src="${artist.image}" alt="${artist.name}" class="artist-detail-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23a855f7%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2224%22%3E${artist.name.charAt(0)}%3C/text%3E%3C/svg%3E'">
+                <div class="artist-detail-info">
+                    <h2>${artist.name}</h2>
+                    <div class="artist-meta">
+                        <span><i class="fas fa-calendar-alt"></i> Créé en ${artist.creationDate}</span>
+                        <span><i class="fas fa-compact-disc"></i> 1er album: ${artist.firstAlbum}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="artist-detail-body">
+                <div class="detail-section">
+                    <h3><i class="fas fa-users"></i> Membres</h3>
+                    <div class="members-list">${membersList}</div>
+                </div>
+                
+                <div class="detail-section">
+                    <h3><i class="fas fa-map-marked-alt"></i> Concerts</h3>
+                    <div class="concerts-list">${concertsList}</div>
+                </div>
+            </div>
+            
+            <div class="artist-detail-footer">
+                <a href="/artist?id=${artist.id}" class="btn-detail secondary">
+                    <i class="fas fa-external-link-alt"></i> Page complète
+                </a>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    // Animation d'entrée
+    requestAnimationFrame(() => modal.classList.add('is-open'));
+    
+    // Fermer avec Escape
+    const escHandler = (e) => {
+        if (e.key === 'Escape') closeArtistDetailsModal();
+    };
+    document.addEventListener('keydown', escHandler);
+    modal.dataset.escHandler = 'true';
+};
+
+window.closeArtistDetailsModal = function() {
+    const modal = document.getElementById('artist-details-modal');
+    if (modal) {
+        modal.classList.remove('is-open');
+        setTimeout(() => {
+            modal.remove();
+            document.body.style.overflow = '';
+        }, 300);
+    }
+};
+
+// Fonction globale pour acheter un billet depuis la carte (ouvre le système de booking)
+window.buyTicketFromMap = function(artistDataEncoded, concertDataEncoded) {
+    const artist = JSON.parse(decodeURIComponent(artistDataEncoded));
+    const concert = JSON.parse(decodeURIComponent(concertDataEncoded));
+    
+    // Fermer les popups de carte
+    if (window.globalMap) window.globalMap.closePopup();
+    if (window.concertsMap) window.concertsMap.closePopup();
+    
+    // Vérifier si le système de booking est disponible
+    if (typeof openBookingModal === 'function') {
+        // Préparer les données pour le modal de booking
+        const dates = concert.dates || [];
+        const firstDate = dates[0] || '';
+        
+        const concertData = {
+            artistId: artist.id,
+            artistName: artist.name,
+            artistImage: artist.image,
+            location: concert.displayLocation || concert.location || 'Lieu inconnu',
+            city: '',
+            country: '',
+            date: firstDate,
+            dateFormatted: formatDateForBooking(firstDate),
+            time: '20:00',
+            price: 45,
+            allDates: dates
+        };
+        
+        openBookingModal(concertData);
+    } else {
+        // Fallback: rediriger vers la page artiste
+        window.location.href = `/artist?id=${artist.id}`;
+    }
+};
+
+function formatDateForBooking(dateStr) {
+    if (!dateStr) return 'Date à confirmer';
+    try {
+        const [day, month, year] = dateStr.split('-').map(Number);
+        const fullYear = year < 100 ? 2000 + year : year;
+        const date = new Date(fullYear, month - 1, day);
+        const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                       'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+        const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+        return `${days[date.getDay()]} ${day} ${months[month - 1]} ${fullYear}`;
+    } catch {
+        return dateStr;
+    }
+}
+
+// Fonction de notification
+function showNotification(message, type = 'info') {
+    // Supprimer les notifications existantes
+    document.querySelectorAll('.map-notification').forEach(n => n.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = `map-notification ${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'error' ? 'times-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animation d'entrée
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    // Suppression automatique
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 document.addEventListener("DOMContentLoaded", () => {

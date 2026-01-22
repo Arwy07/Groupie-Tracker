@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"groupie/src/go/api"
+	"groupie/src/go/geo"
 	"groupie/src/go/models"
 	"groupie/src/go/utils"
 )
@@ -93,6 +94,12 @@ func (d *DataService) GetArtists() []models.Artist {
 	return cp
 }
 
+func (d *DataService) UpdateArtists(artists []models.Artist) {
+	d.App.Mu.Lock()
+	d.App.Artists = artists
+	d.App.Mu.Unlock()
+}
+
 func (d *DataService) FindArtistByID(id int) (models.Artist, bool) {
 	d.App.Mu.RLock()
 	defer d.App.Mu.RUnlock()
@@ -116,11 +123,21 @@ func CombineArtist(apiData models.APIArtist, rel models.APIRelation) models.Arti
 	concerts := make([]models.Concert, 0, len(rel.DatesLocations))
 
 	for raw, dates := range rel.DatesLocations {
-		concerts = append(concerts, models.Concert{
+		displayLoc := utils.PrettifyLocation(raw)
+		concert := models.Concert{
 			Location:        raw,
-			DisplayLocation: utils.PrettifyLocation(raw),
+			DisplayLocation: displayLoc,
 			Dates:           dates,
-		})
+		}
+
+		// Pré-charger les coordonnées depuis le cache de lieux connus
+		if coords, ok := geo.GetVenueCoordinates(displayLoc); ok {
+			concert.Coordinates = coords
+		} else if coords, ok := geo.GetVenueCoordinates(raw); ok {
+			concert.Coordinates = coords
+		}
+
+		concerts = append(concerts, concert)
 	}
 
 	sort.Slice(concerts, func(i, j int) bool {

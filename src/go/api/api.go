@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"groupie/src/go/config"
+	"groupie/src/go/geo"
 	"groupie/src/go/models"
 )
 
@@ -70,9 +71,9 @@ func (c *Client) FetchRelations(ctx context.Context, relationsURL string) (*mode
 }
 
 type GeocodeService struct {
-	Client     *Client
-	Cache      map[string]models.Coordinates
-	CacheMu    sync.RWMutex
+	Client  *Client
+	Cache   map[string]models.Coordinates
+	CacheMu sync.RWMutex
 }
 
 func NewGeocodeService(client *Client) *GeocodeService {
@@ -84,7 +85,8 @@ func NewGeocodeService(client *Client) *GeocodeService {
 
 func (g *GeocodeService) LookupCoordinates(ctx context.Context, location string) (*models.Coordinates, error) {
 	key := strings.ToLower(location)
-	
+
+	// 1. Vérifier le cache en mémoire
 	g.CacheMu.RLock()
 	if coords, ok := g.Cache[key]; ok {
 		g.CacheMu.RUnlock()
@@ -92,6 +94,15 @@ func (g *GeocodeService) LookupCoordinates(ctx context.Context, location string)
 	}
 	g.CacheMu.RUnlock()
 
+	// 2. Vérifier le cache de lieux prédéfinis (instantané)
+	if coords, ok := geo.GetVenueCoordinates(location); ok {
+		g.CacheMu.Lock()
+		g.Cache[key] = *coords
+		g.CacheMu.Unlock()
+		return coords, nil
+	}
+
+	// 3. Fallback: API Nominatim (lent)
 	coords, err := g.geocode(ctx, location)
 	if err != nil {
 		return nil, err
@@ -111,48 +122,47 @@ func (g *GeocodeService) geocode(ctx context.Context, location string) (*models.
 	params.Set("limit", "1")
 	params.Set("q", location)
 	params.Set("addressdetails", "1")
-	
+
 	query := fmt.Sprintf("%s?%s", baseURL, params.Encode())
-	
+
 	var results []struct {
 		Lat string `json:"lat"`
 		Lon string `json:"lon"`
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("User-Agent", "GroupieTracker/1.0 (Educational Project)")
-	
+
 	resp, err := g.Client.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("geocoding failed: status %d", resp.StatusCode)
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
 		return nil, err
 	}
-	
+
 	if len(results) == 0 {
 		return nil, errors.New("aucune coordonnée")
 	}
-	
+
 	lat, err := strconv.ParseFloat(results[0].Lat, 64)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	lon, err := strconv.ParseFloat(results[0].Lon, 64)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &models.Coordinates{Latitude: lat, Longitude: lon}, nil
 }
-

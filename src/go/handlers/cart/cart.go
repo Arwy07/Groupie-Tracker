@@ -2,6 +2,7 @@ package cart
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"groupie/src/go/db"
@@ -25,6 +26,7 @@ func (h *CartHandler) HandleAddItem(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := session.GetUserID(r)
 	if err != nil {
+		log.Printf("Cart: erreur d'authentification: %v", err)
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Non authentifié"})
 		return
@@ -40,6 +42,7 @@ func (h *CartHandler) HandleAddItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&cartItem); err != nil {
+		log.Printf("Cart: erreur de décodage JSON: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Requête invalide"})
 		return
@@ -47,6 +50,7 @@ func (h *CartHandler) HandleAddItem(w http.ResponseWriter, r *http.Request) {
 
 	concertDataJSON, err := json.Marshal(cartItem.ConcertData)
 	if err != nil {
+		log.Printf("Cart: erreur d'encodage concert_data: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Erreur d'encodage"})
 		return
@@ -57,6 +61,7 @@ func (h *CartHandler) HandleAddItem(w http.ResponseWriter, r *http.Request) {
 		userID, string(concertDataJSON), cartItem.SeatType, cartItem.Quantity, cartItem.Price,
 	)
 	if err != nil {
+		log.Printf("Cart: erreur SQL lors de l'insertion: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Erreur lors de l'ajout au panier"})
 		return

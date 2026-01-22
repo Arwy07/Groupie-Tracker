@@ -13,7 +13,7 @@
         <div class="container">
             <div class="artist-header__content">
                 <div class="artist-avatar">
-                    <img src="/assets/pictures/cover.png" alt="{{.Artist.Name}}" class="artist-image">
+                    <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}" class="artist-image" onerror="this.src='/assets/pictures/cover.png'">
                     <div class="artist-badges">
                         <span class="badge">Depuis {{.Artist.CreationDate}}</span>
                         <span class="badge">1er album: {{.Artist.FirstAlbum}}</span>
@@ -50,7 +50,6 @@
         <div class="container">
             <ul>
                 <li><a href="#concerts" class="active">Concerts</a></li>
-                <li><a href="#carte">Carte des tournées</a></li>
                 <li><a href="#albums">Discographie</a></li>
                 <li><a href="#membres">Membres</a></li>
             </ul>
@@ -60,32 +59,6 @@
     <!-- Section principale -->
     <div class="container">
         <div class="artist-main">
-            <!-- Section Carte -->
-            <section id="carte" class="section-map">
-                <div class="section-header">
-                    <h2><i class="fas fa-map-marked-alt"></i> Carte des tournées</h2>
-                    <p>Visualisez les lieux de concert sur la carte</p>
-                </div>
-                <div class="map-container">
-                    <div id="artist-map" class="map-wrapper">
-                        <div class="map-loading">
-                            <div class="spinner"></div>
-                            <p>Chargement de la carte...</p>
-                        </div>
-                    </div>
-                    <div class="map-legend">
-                        <div class="legend-item">
-                            <span class="legend-color" style="background: var(--accent);"></span>
-                            <span>Concerts à venir</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color" style="background: var(--muted);"></span>
-                            <span>Concerts passés</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
             <!-- Section Concerts -->
             <section id="concerts" class="section-concerts">
                 <div class="section-header">
@@ -501,7 +474,7 @@ function loadUpcomingConcerts() {
             }
             
             // Utiliser tous les concerts comme concerts à afficher
-            const concertsToDisplay = allConcerts.slice(0, 10); // Limiter à 10 plus récents
+            const concertsToDisplay = allConcerts; // Afficher tous les concerts
             
             // Mettre à jour le compteur
             const quickCount = document.getElementById('quick-upcoming-count');

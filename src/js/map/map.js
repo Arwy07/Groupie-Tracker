@@ -29,6 +29,7 @@ function initGlobalMap() {
         return;
     }
     
+    // Créer la carte avec Google Maps style
     const map = L.map('global-map', {
         zoomControl: false,
         scrollWheelZoom: true,
@@ -36,13 +37,14 @@ function initGlobalMap() {
         doubleClickZoom: true,
         boxZoom: true,
         keyboard: true,
-        fadeAnimation: true,
+        fadeAnimation: false,
         zoomAnimation: true,
         attributionControl: true,
-        center: [30, 0],
-        zoom: 2,
-        minZoom: 2,
-        maxZoom: 18
+        center: [20, 0],
+        zoom: 3,
+        minZoom: 3,
+        maxZoom: 19,
+        worldCopyJump: false
     });
     
     L.control.zoom({
@@ -51,221 +53,213 @@ function initGlobalMap() {
         zoomOutTitle: 'Zoom arrière'
     }).addTo(map);
     
-    // Utiliser CartoDB Voyager - style coloré moderne
-    const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    // Google Maps comme fond de carte
+    const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+    });
+    
+    // Alternative OpenStreetMap
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+    });
+    
+    // CartoDB Voyager (style moderne)
+    const cartoLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
         subdomains: 'abcd',
         maxZoom: 19
     });
     
-    tileLayer.addTo(map);
+    // Utiliser Google Maps par défaut
+    googleStreets.addTo(map);
     
-    console.log('Carte Leaflet initialisée');
+    // Contrôle de couches
+    const baseLayers = {
+        "Google Maps": googleStreets,
+        "OpenStreetMap": osmLayer,
+        "CartoDB": cartoLayer
+    };
+    L.control.layers(baseLayers, null, { position: 'topright' }).addTo(map);
+    
+    console.log('Carte Leaflet initialisée avec Google Maps');
     
     const markers = [];
     const bounds = [];
     const markerGroups = {};
     
-    function createPopupContent(concert, artistName) {
-        // Afficher toutes les dates disponibles
+    function createPopupContent(concert, artist) {
         const dates = concert.dates || [];
+        const artistName = artist.name;
+        const artistId = artist.id;
+        const artistImage = artist.image;
+        const members = artist.members || [];
+        
+        // Debug: vérifier les données de l'artiste
+        console.log('Creating popup for:', artistName, 'ID:', artistId, 'Image:', artistImage);
+        
+        // Préparer les données pour les boutons
+        const artistData = encodeURIComponent(JSON.stringify({
+            id: artistId,
+            name: artistName,
+            image: artistImage,
+            members: members,
+            creationDate: artist.creationDate,
+            firstAlbum: artist.firstAlbum,
+            concerts: artist.concerts || []
+        }));
+        
+        const concertData = encodeURIComponent(JSON.stringify({
+            location: concert.displayLocation || 'Lieu inconnu',
+            dates: dates,
+            coordinates: concert.coordinates
+        }));
+        
         const datesList = dates.length > 0
             ? `<div class="popup-dates">
-                  <strong><i class="fas fa-calendar-alt"></i> Dates de concert :</strong>
-                  <ul>${dates.slice(0, 5).map(date => `<li>${date}</li>`).join('')}${dates.length > 5 ? `<li>... et ${dates.length - 5} autre(s)</li>` : ''}</ul>
+                  <strong><i class="fas fa-calendar-alt"></i> Dates :</strong>
+                  <ul>${dates.slice(0, 4).map(date => `<li>${date}</li>`).join('')}${dates.length > 4 ? `<li class="more">+${dates.length - 4} autre(s)</li>` : ''}</ul>
               </div>`
             : '';
         
+        const membersList = members.length > 0
+            ? `<div class="popup-members"><i class="fas fa-users"></i> ${members.slice(0, 3).join(', ')}${members.length > 3 ? '...' : ''}</div>`
+            : '';
+        
         return `
-            <div class="map-popup">
-                <h4>${artistName}</h4>
-                <p class="location">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <strong>${concert.displayLocation || 'Lieu inconnu'}</strong>
-                </p>
-                ${datesList}
+            <div class="map-popup enhanced">
+                <div class="popup-header-enhanced">
+                    <img src="${artistImage}" alt="${artistName}" class="popup-artist-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23a855f7%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2224%22%3E${artistName.charAt(0)}%3C/text%3E%3C/svg%3E'">
+                    <div class="popup-title-area">
+                        <h4>${artistName}</h4>
+                    </div>
+                </div>
+                <div class="popup-body">
+                    <p class="location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <strong>${concert.displayLocation || 'Lieu inconnu'}</strong>
+                    </p>
+                    ${membersList}
+                    ${datesList}
+                </div>
+                <div class="popup-actions-enhanced">
+                    <button class="popup-btn secondary" onclick="openArtistDetailsFromMap('${artistData}')">
+                        <i class="fas fa-info-circle"></i> Détails
+                    </button>
+                    <button class="popup-btn primary buy-ticket-btn" onclick="buyTicketFromMap('${artistData}', '${concertData}')">
+                        <i class="fas fa-ticket-alt"></i> Acheter
+                    </button>
+                </div>
             </div>
         `;
     }
     
-    async function geocodeLocation(location) {
-        try {
-            console.log('Géocodage de:', location);
-            const response = await fetch(`/api/geocode?location=${encodeURIComponent(location)}`);
-            if (!response.ok) {
-                console.warn(`Erreur API géocodage pour ${location}:`, response.status, response.statusText);
-                return null;
-            }
-            const data = await response.json();
-            if (data && data.lat !== undefined && data.lng !== undefined) {
-                const coords = { lat: parseFloat(data.lat), lng: parseFloat(data.lng) };
-                console.log(`✅ Coordonnées trouvées pour ${location}:`, coords);
-                return coords;
-            }
-            console.warn(`Pas de coordonnées dans la réponse pour ${location}`);
-        } catch (error) {
-            console.error('Erreur géocodage pour', location, ':', error);
-        }
-        return null;
-    }
-    
     const artists = window.__ARTISTS || [];
     let validLocationsCount = 0;
-    let missingCoordinatesCount = 0;
     
     console.log('Carte globale - Artistes chargés:', artists.length);
     
-    async function processConcertGlobal(concert, artist) {
-        let lat, lng;
+    // Charger TOUS les marqueurs immédiatement (sans appel API)
+    function loadAllMarkersInstantly() {
+        console.log('Chargement instantané des marqueurs...');
         
-        if (concert.coordinates) {
-            if (concert.coordinates.lat !== undefined && concert.coordinates.lng !== undefined) {
-                lat = parseFloat(concert.coordinates.lat);
-                lng = parseFloat(concert.coordinates.lng);
-            } else if (concert.coordinates.latitude !== undefined && concert.coordinates.longitude !== undefined) {
-                lat = parseFloat(concert.coordinates.latitude);
-                lng = parseFloat(concert.coordinates.longitude);
-            }
-        }
-        
-        if ((lat === undefined || lng === undefined || isNaN(lat) || isNaN(lng))) {
-            const locationToGeocode = concert.displayLocation || concert.location;
-            if (!locationToGeocode) {
-                missingCoordinatesCount++;
-                return null;
-            }
-            
-            const coords = await geocodeLocation(locationToGeocode);
-            if (coords && !isNaN(coords.lat) && !isNaN(coords.lng)) {
-                lat = coords.lat;
-                lng = coords.lng;
-                if (!concert.coordinates) concert.coordinates = {};
-                concert.coordinates.lat = lat;
-                concert.coordinates.lng = lng;
-            } else {
-                missingCoordinatesCount++;
-                return null;
-            }
-        }
-        
-        if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-            missingCoordinatesCount++;
-            return null;
-        }
-        
-        validLocationsCount++;
-        const popupContent = createPopupContent(concert, artist.name);
-        
-        const markerIcon = L.divIcon({
-            className: 'custom-marker upcoming',
-            html: `<div class="marker-pin">
-                <svg viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24c0-6.627-5.373-12-12-12z" fill="currentColor"/>
-                    <circle cx="12" cy="12" r="5" fill="white"/>
-                </svg>
-            </div>`,
-            iconSize: [28, 36],
-            iconAnchor: [14, 36],
-            popupAnchor: [0, -36]
-        });
-        
-        const marker = L.marker([lat, lng], {
-            icon: markerIcon,
-            interactive: true,
-            keyboard: true,
-            title: artist.name + ' - ' + (concert.displayLocation || 'Lieu inconnu')
-        });
-        
-        marker.bindPopup(popupContent, {
-            maxWidth: 300,
-            minWidth: 200,
-            className: 'custom-popup',
-            closeButton: true,
-            autoClose: false,
-            closeOnClick: false
-        });
-        
-        marker.on('click', function(e) {
-            marker.openPopup();
-        });
-        
-        marker.options.interactive = true;
-        marker.options.keyboard = true;
-        
-        marker.addTo(map);
-        markers.push(marker);
-        bounds.push([lat, lng]);
-        
-        if (!markerGroups[artist.id]) {
-            markerGroups[artist.id] = [];
-        }
-        markerGroups[artist.id].push(marker);
-        
-        return marker;
-    }
-    
-    async function loadAllMarkers() {
-        const concertsToGeocode = [];
-        const concertsWithCoords = [];
-        
-        console.log('Début du chargement des marqueurs...');
-        console.log('Artistes disponibles:', artists.length);
-        
-        // Charger TOUS les concerts (pas de filtre par date car les données de l'API sont historiques)
         for (const artist of artists) {
             if (!artist.concerts || !Array.isArray(artist.concerts)) continue;
+            
             for (const concert of artist.concerts) {
-                if (!concert.displayLocation && !concert.location) continue;
+                let lat, lng;
                 
-                let hasCoords = false;
+                // Extraire les coordonnées pré-calculées
                 if (concert.coordinates) {
-                    if ((concert.coordinates.lat !== undefined && concert.coordinates.lng !== undefined) ||
-                        (concert.coordinates.latitude !== undefined && concert.coordinates.longitude !== undefined)) {
-                        const lat = parseFloat(concert.coordinates.lat || concert.coordinates.latitude);
-                        const lng = parseFloat(concert.coordinates.lng || concert.coordinates.longitude);
-                        if (!isNaN(lat) && !isNaN(lng)) {
-                            hasCoords = true;
-                        }
+                    if (concert.coordinates.lat !== undefined && concert.coordinates.lng !== undefined) {
+                        lat = parseFloat(concert.coordinates.lat);
+                        lng = parseFloat(concert.coordinates.lng);
+                    } else if (concert.coordinates.latitude !== undefined && concert.coordinates.longitude !== undefined) {
+                        lat = parseFloat(concert.coordinates.latitude);
+                        lng = parseFloat(concert.coordinates.longitude);
                     }
                 }
-                if (hasCoords) {
-                    concertsWithCoords.push({ concert, artist });
-                } else {
-                    concertsToGeocode.push({ concert, artist });
+                
+                // Ignorer si pas de coordonnées valides
+                if (lat === undefined || lng === undefined || isNaN(lat) || isNaN(lng)) {
+                    continue;
                 }
+                
+                if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                    continue;
+                }
+                
+                validLocationsCount++;
+                const popupContent = createPopupContent(concert, artist);
+                
+                // Déterminer si concert à venir
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const hasUpcoming = (concert.dates || []).some(dateStr => {
+                    try {
+                        const [day, month, year] = dateStr.split('-').map(Number);
+                        const fullYear = year < 100 ? 2000 + year : year;
+                        return new Date(fullYear, month - 1, day) >= today;
+                    } catch { return false; }
+                });
+                
+                const markerIcon = L.divIcon({
+                    className: `custom-marker ${hasUpcoming ? 'upcoming' : 'past'}`,
+                    html: `<div class="marker-pin">
+                        <svg viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24c0-6.627-5.373-12-12-12z" fill="currentColor"/>
+                            <circle cx="12" cy="12" r="5" fill="white"/>
+                        </svg>
+                    </div>`,
+                    iconSize: [28, 36],
+                    iconAnchor: [14, 36],
+                    popupAnchor: [0, -36]
+                });
+                
+                const marker = L.marker([lat, lng], {
+                    icon: markerIcon,
+                    interactive: true,
+                    keyboard: true,
+                    title: artist.name + ' - ' + (concert.displayLocation || 'Lieu inconnu')
+                });
+                
+                marker.bindPopup(popupContent, {
+                    maxWidth: 300,
+                    minWidth: 200,
+                    className: 'custom-popup',
+                    closeButton: true,
+                    autoClose: false,
+                    closeOnClick: false
+                });
+                
+                marker.on('click', function(e) {
+                    marker.openPopup();
+                });
+                
+                marker.addTo(map);
+                markers.push(marker);
+                bounds.push([lat, lng]);
+                
+                if (!markerGroups[artist.id]) {
+                    markerGroups[artist.id] = [];
+                }
+                markerGroups[artist.id].push(marker);
             }
         }
         
-        console.log(`${concertsWithCoords.length} concerts avec coordonnées, ${concertsToGeocode.length} à géocoder`);
-        
-        // Charger tous les concerts avec coordonnées
-        console.log(`Chargement de ${concertsWithCoords.length} concerts...`);
-        const promises = concertsWithCoords.map(({ concert, artist }) => 
-            processConcertGlobal(concert, artist)
-        );
-        await Promise.all(promises);
-        
-        // Géocoder quelques concerts supplémentaires si nécessaire
-        const maxToGeocode = Math.min(50, concertsToGeocode.length);
-        
-        for (let i = 0; i < maxToGeocode; i++) {
-            if (i > 0 && i % 5 === 0) {
-                await new Promise(resolve => setTimeout(resolve, 500));
-            }
-            
-            await processConcertGlobal(concertsToGeocode[i].concert, concertsToGeocode[i].artist);
-        }
-        
+        // Ajuster la vue sur tous les marqueurs
         if (bounds.length > 0) {
             map.fitBounds(bounds, { padding: [50, 50], maxZoom: 6 });
         }
         
-        console.log(`Carte globale: ${validLocationsCount} marqueurs valides, ${missingCoordinatesCount} coordonnées manquantes`);
+        console.log(`✅ Carte chargée instantanément: ${validLocationsCount} marqueurs affichés`);
         
-        if (validLocationsCount === 0 && markers.length === 0) {
-            showMapError('Aucun concert disponible pour le moment.');
-        } else {
-            console.log(`✅ Carte chargée avec succès: ${validLocationsCount} marqueurs affichés`);
+        // Cacher le loading
+        const loadingElement = mapContainer.querySelector('.map-loading');
+        if (loadingElement) {
+            loadingElement.style.display = 'none';
         }
     }
     
@@ -287,75 +281,32 @@ function initGlobalMap() {
     window.globalMap = map;
     window.globalMarkers = markers;
     
-    // Cacher le loading immédiatement après initialisation de la carte
-    const loadingElement = mapContainer.querySelector('.map-loading');
-    if (loadingElement) {
-        loadingElement.innerHTML = '<div class="spinner"></div><p>Chargement des concerts...</p>';
-    }
-    
-    // Charger les marqueurs
-    setTimeout(async () => {
-        map.invalidateSize();
-        console.log('Démarrage du chargement des marqueurs...');
-        
-        try {
-            await loadAllMarkers();
-        } catch (err) {
-            console.error('Erreur lors du chargement des marqueurs:', err);
-        }
-        
-        if (loadingElement) {
-            loadingElement.style.opacity = '0';
-            setTimeout(() => {
-                loadingElement.style.display = 'none';
-            }, 300);
-        }
-    }, 300);
+    // Charger les marqueurs immédiatement
+    map.invalidateSize();
+    loadAllMarkersInstantly();
     
     function showMapError(message) {
-        if (!mapContainer) {
-            console.error('Impossible d\'afficher l\'erreur: conteneur introuvable');
-            return;
-        }
+        if (!mapContainer) return;
         console.error('Erreur de carte:', message);
         mapContainer.innerHTML = `
             <div class="error-message" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(10, 14, 26, 0.9); color: var(--text); padding: 2rem; text-align: center; z-index: 1000;">
                 <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--error); margin-bottom: 1rem;"></i>
                 <p style="margin: 0 0 1rem; font-size: 1.1rem;">${message}</p>
-                <p style="margin: 0; font-size: 0.9rem; color: var(--muted);">Vérifiez votre connexion internet et rechargez la page.</p>
                 <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer;">Recharger</button>
             </div>
         `;
     }
     
+    // Styles
     const style = document.createElement('style');
     style.textContent = `
         #global-map {
             width: 100% !important;
             height: 600px !important;
             min-height: 600px !important;
-            max-height: 600px !important;
             position: relative !important;
             overflow: hidden !important;
-            box-sizing: border-box !important;
             border-radius: 16px;
-        }
-        
-        #global-map .leaflet-container {
-            width: 100% !important;
-            height: 100% !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            z-index: 1 !important;
-            border-radius: 16px;
-            background: var(--bg-alt);
-        }
-        
-        #global-map .leaflet-pane {
-            z-index: 2 !important;
         }
         
         .custom-marker {
@@ -363,7 +314,7 @@ function initGlobalMap() {
             width: 28px;
             height: 36px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.2s ease;
             pointer-events: auto !important;
             z-index: 100 !important;
             filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
@@ -376,7 +327,6 @@ function initGlobalMap() {
             left: 0;
             top: 0;
             pointer-events: auto !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .marker-pin svg {
@@ -389,70 +339,51 @@ function initGlobalMap() {
             filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6));
         }
         
-        .custom-marker.past .marker-pin {
-            color: #6b7280;
-            opacity: 0.7;
-        }
-        
         .custom-marker:hover {
             transform: scale(1.3) translateY(-4px);
             z-index: 1000 !important;
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.5));
-        }
-        
-        .custom-marker.upcoming:hover .marker-pin {
-            color: #a78bfa;
-            filter: drop-shadow(0 0 16px rgba(139, 92, 246, 0.9));
         }
 
         .leaflet-popup.custom-popup .leaflet-popup-content-wrapper {
-            background: var(--panel);
-            color: var(--text);
+            background: var(--panel, #1a1f2e);
+            color: var(--text, #e8ecf0);
             border-radius: 16px;
             padding: 0;
-            border: 1px solid var(--border);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(168, 85, 247, 0.2);
-            backdrop-filter: blur(20px);
+            border: 1px solid var(--border, rgba(156, 163, 175, 0.15));
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
         
         .leaflet-popup.custom-popup .leaflet-popup-content {
             margin: 0;
-            padding: 20px;
-            font-size: 14px;
-            line-height: 1.6;
+            padding: 16px;
+        }
+        
+        .leaflet-popup.custom-popup .leaflet-popup-tip {
+            background: var(--panel, #1a1f2e);
         }
         
         .map-popup h4 {
             margin: 0 0 12px;
-            color: var(--accent);
-            font-size: 18px;
+            color: #a855f7;
+            font-size: 16px;
             font-weight: 700;
         }
         
         .map-popup .location {
             margin: 0 0 8px;
-            color: var(--text);
-            font-size: 0.95em;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
         .map-popup .location i {
-            color: var(--accent);
-            font-size: 1.1em;
-        }
-        
-        .map-popup .city {
-            margin: 0 0 12px;
-            color: var(--muted);
-            font-size: 0.9em;
+            color: #a855f7;
         }
         
         .popup-dates {
             margin-top: 12px;
             padding-top: 12px;
-            border-top: 1px solid var(--border);
+            border-top: 1px solid rgba(156, 163, 175, 0.15);
         }
         
         .popup-dates strong {
@@ -460,21 +391,40 @@ function initGlobalMap() {
             align-items: center;
             gap: 8px;
             margin-bottom: 8px;
-            color: var(--text);
-            font-size: 0.95em;
+            font-size: 0.9em;
         }
         
         .popup-dates ul {
             margin: 8px 0 0;
-            padding-left: 24px;
-            max-height: 150px;
+            padding-left: 20px;
+            max-height: 120px;
             overflow-y: auto;
         }
         
         .popup-dates li {
-            margin: 6px 0;
-            color: var(--muted);
-            font-size: 0.9em;
+            margin: 4px 0;
+            color: #9ca3af;
+            font-size: 0.85em;
+        }
+        
+        .popup-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .popup-link:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
         }
     `;
     document.head.appendChild(style);
@@ -483,30 +433,21 @@ function initGlobalMap() {
 function initializeMapWhenReady() {
     const mapContainer = document.getElementById('global-map');
     if (!mapContainer) {
-        console.warn('Conteneur global-map introuvable, réessai dans 500ms...');
         setTimeout(initializeMapWhenReady, 500);
         return;
     }
     
-    if (typeof waitForLeaflet !== 'undefined') {
-        waitForLeaflet(() => {
-            console.log('Initialisation de la carte globale...');
+    let attempts = 0;
+    const checkInterval = setInterval(() => {
+        attempts++;
+        if (typeof L !== 'undefined' && typeof L.map === 'function') {
+            clearInterval(checkInterval);
             initGlobalMap();
-        });
-    } else {
-        let attempts = 0;
-        const checkInterval = setInterval(() => {
-            attempts++;
-            if (typeof L !== 'undefined' && typeof L.map === 'function') {
-                clearInterval(checkInterval);
-                console.log('Initialisation de la carte globale (fallback)...');
-                setTimeout(() => initGlobalMap(), 100);
-            } else if (attempts >= 100) {
-                clearInterval(checkInterval);
-                console.error('❌ Leaflet non disponible après 100 tentatives');
-            }
-        }, 50);
-    }
+        } else if (attempts >= 100) {
+            clearInterval(checkInterval);
+            console.error('❌ Leaflet non disponible');
+        }
+    }, 50);
 }
 
 if (document.readyState === 'loading') {

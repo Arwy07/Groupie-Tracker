@@ -382,11 +382,16 @@ function confirmBooking() {
     .then(response => {
         if (response.status === 401) {
             window.location.href = '/login';
-            return;
+            return Promise.reject('redirect');
+        }
+        if (!response.ok) {
+            return response.json().then(data => Promise.reject(data.error || 'Erreur serveur'));
         }
         return response.json();
     })
     .then(data => {
+        if (!data) return;
+        
         if (data.success) {
             const confirmMessage = `
                 <div class="booking-confirmation">
@@ -418,6 +423,7 @@ function confirmBooking() {
         }
     })
     .catch(error => {
+        if (error === 'redirect') return;
         console.error('Erreur:', error);
         alert('Erreur lors de l\'ajout au panier. Veuillez réessayer.');
     });

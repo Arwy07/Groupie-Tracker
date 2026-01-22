@@ -3,14 +3,16 @@ package app
 import (
 	"context"
 	"html/template"
+	"log"
 	"net/http"
 	"time"
 
 	"groupie/src/go/api"
 	"groupie/src/go/config"
-	"groupie/src/go/game"
-	"groupie/src/go/models"
 	"groupie/src/go/db"
+	"groupie/src/go/game"
+	"groupie/src/go/geo"
+	"groupie/src/go/models"
 	"groupie/src/go/templates"
 )
 
@@ -50,6 +52,11 @@ func InitializeApp() (*AppInitializer, error) {
 		return nil, err
 	}
 
+	// Pré-géocoder TOUS les lieux au démarrage
+	log.Println("Pré-chargement des coordonnées des concerts...")
+	preloadAllCoordinates(dataService, geocodeService)
+	log.Println("Coordonnées pré-chargées avec succès")
+
 	return &AppInitializer{
 		App:            app,
 		APIClient:      apiClient,
@@ -59,3 +66,41 @@ func InitializeApp() (*AppInitializer, error) {
 	}, nil
 }
 
+// preloadAllCoordinates charge toutes les coordonnées au démarrage
+func preloadAllCoordinates(dataService *game.DataService, geocodeService *api.GeocodeService) {
+	artists := dataService.GetArtists()
+
+	coordsCount := 0
+	missingCount := 0
+
+	for i := range artists {
+		for j := range artists[i].Concerts {
+			concert := &artists[i].Concerts[j]
+
+			// Si déjà des coordonnées, skip
+			if concert.Coordinates != nil {
+				coordsCount++
+				continue
+			}
+
+			// Essayer le cache de lieux connus
+			if coords, ok := geo.GetVenueCoordinates(concert.DisplayLocation); ok {
+				concert.Coordinates = coords
+				coordsCount++
+				continue
+			}
+
+			if coords, ok := geo.GetVenueCoordinates(concert.Location); ok {
+				concert.Coordinates = coords
+				coordsCount++
+				continue
+			}
+
+			// Ne PAS appeler l'API au démarrage - trop lent
+			// Les lieux sans coordonnées ne seront pas affichés sur la carte
+			missingCount++
+		}
+	}
+
+	log.Printf("Coordonnées: %d trouvées, %d manquantes", coordsCount, missingCount)
+}
