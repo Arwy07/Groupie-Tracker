@@ -1,0 +1,30 @@
+# Fichiers d'environnement (contiennent des secrets)
+.env
+
+# Base de données SQLite
+*.db
+
+# IDE
+.idea/
+.vscode/
+
+# Binaires
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Dossiers de build
+/bin/
+/build/
+/dist/
+
+# Fichiers de test
+*.test
+*.out
+
+# Certificats
+*.pem
+*.key
+*.crt

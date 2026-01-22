@@ -1,0 +1,96 @@
+{{define "terms.html"}}
+{{template "layout" .}}
+{{end}}
+
+{{define "head"}}
+<style>
+    .terms-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: var(--panel);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+    }
+    .terms-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--text);
+    }
+    .terms-section {
+        margin-bottom: 2rem;
+    }
+    .terms-section h2 {
+        color: var(--accent);
+        margin-bottom: 1rem;
+    }
+    .terms-section p {
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    .terms-section ul {
+        color: var(--muted);
+        line-height: 1.6;
+        margin-left: 2rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{{end}}
+
+{{define "content"}}
+<div class="terms-container">
+    <h1 class="terms-title">Conditions d'utilisation</h1>
+    <p style="text-align: center; color: var(--muted); margin-bottom: 2rem;">Dernière mise à jour : {{.Date | default "2024"}}</p>
+    
+    <div class="terms-section">
+        <h2>1. Acceptation des conditions</h2>
+        <p>En accédant et en utilisant Groupie Tracker, vous acceptez d'être lié par ces conditions d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre service.</p>
+    </div>
+    
+    <div class="terms-section">
+        <h2>2. Description du service</h2>
+        <p>Groupie Tracker est une plateforme permettant de découvrir des artistes, leurs concerts et de suivre leurs tournées mondiales. Nous fournissons des informations sur les concerts, les dates et les lieux.</p>
+    </div>
+    
+    <div class="terms-section">
+        <h2>3. Compte utilisateur</h2>
+        <p>Pour utiliser certaines fonctionnalités, vous devez créer un compte. Vous êtes responsable de :</p>
+        <ul>
+            <li>Maintenir la confidentialité de votre mot de passe</li>
+            <li>Toutes les activités qui se produisent sous votre compte</li>
+            <li>Fournir des informations exactes et à jour</li>
+        </ul>
+    </div>
+    
+    <div class="terms-section">
+        <h2>4. Réservations et paiements</h2>
+        <p>Les réservations de billets sont gérées via notre système de panier. Les paiements sont traités via PayPal. Nous ne sommes pas responsables des problèmes liés aux services de paiement tiers.</p>
+    </div>
+    
+    <div class="terms-section">
+        <h2>5. Propriété intellectuelle</h2>
+        <p>Tout le contenu de ce site, y compris les textes, graphiques, logos et images, est la propriété de Groupie Tracker ou de ses fournisseurs de contenu et est protégé par les lois sur le droit d'auteur.</p>
+    </div>
+    
+    <div class="terms-section">
+        <h2>6. Limitation de responsabilité</h2>
+        <p>Groupie Tracker ne garantit pas l'exactitude, l'exhaustivité ou l'utilité des informations fournies. Nous ne serons pas responsables des dommages directs, indirects, accessoires ou consécutifs résultant de l'utilisation de notre service.</p>
+    </div>
+    
+    <div class="terms-section">
+        <h2>7. Modifications des conditions</h2>
+        <p>Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications entreront en vigueur dès leur publication sur cette page.</p>
+    </div>
+    
+    <div class="terms-section">
+        <h2>8. Contact</h2>
+        <p>Pour toute question concernant ces conditions d'utilisation, veuillez nous contacter via les moyens disponibles sur notre site.</p>
+    </div>
+    
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="/register" class="btn btn-primary">Retour à l'inscription</a>
+    </div>
+</div>
+{{end}}
+

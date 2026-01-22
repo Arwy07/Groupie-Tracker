@@ -1,0 +1,206 @@
+{{define "dashboard.html"}}
+{{template "layout" .}}
+{{end}}
+
+{{define "head"}}
+<link rel="stylesheet" href="/assets/styles/style/style.css">
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+    .dashboard-header h1 {
+        color: var(--text);
+        margin-bottom: 0.5rem;
+    }
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        background: var(--panel);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+    }
+    .stat-card h3 {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    .stat-card .value {
+        color: var(--accent);
+        font-size: 2rem;
+        font-weight: 600;
+    }
+    .users-table {
+        background: var(--panel);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+    }
+    .users-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .users-table th,
+    .users-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+    .users-table th {
+        background: var(--bg-alt);
+        color: var(--text);
+        font-weight: 600;
+    }
+    .users-table td {
+        color: var(--muted);
+    }
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .badge-admin {
+        background: rgba(168, 85, 247, 0.2);
+        color: var(--accent);
+    }
+    .badge-owner {
+        background: rgba(236, 72, 153, 0.2);
+        color: var(--accent-2);
+    }
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+    .btn-toggle-admin {
+        background: var(--accent);
+        color: white;
+    }
+    .btn-toggle-admin:hover {
+        background: var(--accent-hover);
+    }
+</style>
+{{end}}
+
+{{define "content"}}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1><i class="fas fa-tachometer-alt"></i> Dashboard Administrateur</h1>
+        <p style="color: var(--muted);">Gestion des utilisateurs et du système</p>
+    </div>
+    
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <h3>Total Utilisateurs</h3>
+            <div class="value">{{len .Users}}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Administrateurs</h3>
+            <div class="value">
+                {{$adminCount := 0}}
+                {{range .Users}}{{if .IsAdmin}}{{$adminCount = add $adminCount 1}}{{end}}{{end}}
+                {{$adminCount}}
+            </div>
+        </div>
+        <div class="stat-card">
+            <h3>Propriétaires</h3>
+            <div class="value">
+                {{$ownerCount := 0}}
+                {{range .Users}}{{if .IsOwner}}{{$ownerCount = add $ownerCount 1}}{{end}}{{end}}
+                {{$ownerCount}}
+            </div>
+        </div>
+    </div>
+    
+    <div class="users-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Nom</th>
+                    <th>Rôle</th>
+                    <th>Date d'inscription</th>
+                    {{if .IsOwner}}
+                    <th>Actions</th>
+                    {{end}}
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Users}}
+                <tr>
+                    <td>{{.ID}}</td>
+                    <td>{{.Email}}</td>
+                    <td>{{.FirstName}} {{.LastName}}</td>
+                    <td>
+                        {{if .IsOwner}}
+                        <span class="badge badge-owner">Owner</span>
+                        {{else if .IsAdmin}}
+                        <span class="badge badge-admin">Admin</span>
+                        {{else}}
+                        <span>Utilisateur</span>
+                        {{end}}
+                    </td>
+                    <td>{{.CreatedAt}}</td>
+                    {{if $.IsOwner}}
+                    <td>
+                        {{if not .IsOwner}}
+                        <button class="btn-action btn-toggle-admin" onclick="toggleAdmin({{.ID}}, {{.IsAdmin}})">
+                            {{if .IsAdmin}}Retirer Admin{{else}}Donner Admin{{end}}
+                        </button>
+                        {{end}}
+                    </td>
+                    {{end}}
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function toggleAdmin(userId, currentStatus) {
+    if (!confirm('Êtes-vous sûr de vouloir ' + (currentStatus ? 'retirer' : 'donner') + ' les droits administrateur à cet utilisateur ?')) {
+        return;
+    }
+    
+    fetch('/api/admin/toggle', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            userId: userId,
+            isAdmin: !currentStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erreur: ' + (data.error || 'Erreur inconnue'));
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de la modification');
+    });
+}
+</script>
+{{end}}
+

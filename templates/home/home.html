@@ -328,6 +328,7 @@
 {{define "pageScripts"}}
 <script>
 window.__ARTISTS = {{.ArtistsJSON}};
+console.log('Artistes chargés:', window.__ARTISTS ? window.__ARTISTS.length : 0);
 // Mettre à jour le nombre d'artistes
 document.addEventListener('DOMContentLoaded', function() {
     const artistsCount = window.__ARTISTS ? window.__ARTISTS.length : 0;
@@ -338,8 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <script src="/script/app/app.js" defer></script>
-<script src="/script/app/map.js" defer></script>
-<script src="/script/app/concerts-map.js" defer></script>
+<script src="/script/map/map.js" defer></script>
 {{end}}
 
 

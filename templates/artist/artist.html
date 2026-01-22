@@ -13,7 +13,7 @@
         <div class="container">
             <div class="artist-header__content">
                 <div class="artist-avatar">
-                    <img src="/assets/images/cover.png" alt="{{.Artist.Name}}" class="artist-image">
+                    <img src="/assets/pictures/cover.png" alt="{{.Artist.Name}}" class="artist-image">
                     <div class="artist-badges">
                         <span class="badge">Depuis {{.Artist.CreationDate}}</span>
                         <span class="badge">1er album: {{.Artist.FirstAlbum}}</span>
@@ -177,13 +177,8 @@
 
 {{define "pageScripts"}}
 <script>
-<<<<<<< HEAD
 window.__ARTIST = {{ toJSON .Artist }};
-</script>
 
-
-=======
->>>>>>> 66b2079570d83dbe6d064168dd356e94d5bb7751
 // Fonction utilitaire pour formater les dates
 function formatDate(dateString, format) {
     const date = new Date(dateString);
@@ -687,6 +682,14 @@ function setupConcertCards() {
     
     // Rendre toute la carte cliquable pour ouvrir le modal de réservation
     document.querySelectorAll('.concert-card-enhanced').forEach(card => {
+        // Vérifier si les événements sont déjà attachés pour éviter les doublons
+        if (card.dataset.eventsAttached === 'true') {
+            return;
+        }
+        
+        // Marquer que les événements sont attachés
+        card.dataset.eventsAttached = 'true';
+        
         // Gestionnaire de clic
         const handleClick = function(e) {
             e.preventDefault();
@@ -759,7 +762,7 @@ function generateRandomPrice() {
     return basePrices[Math.floor(Math.random() * basePrices.length)];
 }
 </script>
-<script src="/script/artist/member.js"></script>
-<script src="/script/artist/booking.js"></script>
+<script src="/script/member/member.js"></script>
+<script src="/script/booking/booking.js"></script>
 <script src="/script/artist/artist.js"></script>
 {{end}}
