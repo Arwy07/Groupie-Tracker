@@ -1,0 +1,183 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groupie Tracker - Carte des concerts</title>
+    <meta name="description" content="Suivez les tournées mondiales de vos artistes préférés en temps réel">
+    
+    <!-- Polices -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Feuilles de style -->
+    <!-- Leaflet sans SRI pour éviter les problèmes de version/hash -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/styles/style/style.css">
+    <link rel="stylesheet" href="/assets/styles/favorites/favorites.css">
+    <link rel="stylesheet" href="/assets/styles/cart/cart.css">
+    <link rel="stylesheet" href="/assets/styles/refresh-btn/refresh-btn.css">
+    {{block "head" .}}{{end}}
+</head>
+<body>
+<header class="site-header">
+    <a href="/home" class="logo">
+        <i class="fas fa-globe-americas"></i>
+        <span>Groupie Tracker</span>
+    </a>
+    
+    <button class="menu-toggle" data-menu-toggle aria-label="Menu" aria-expanded="false" aria-controls="main-navigation">
+        <span class="menu-icon"></span>
+    </button>
+    
+    <nav class="main-nav" id="main-navigation">
+        <a href="/home#map" class="nav-link" data-nav="map">
+            <i class="fas fa-map-marked-alt"></i>
+            <span>Carte</span>
+        </a>
+        <a href="/home#artists-panel" class="nav-link">
+            <i class="fas fa-users"></i>
+            <span>Artistes</span>
+        </a>
+        <a href="/home#concerts" class="nav-link">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Concerts</span>
+        </a>
+        <a href="/home#statistiques" class="nav-link">
+            <i class="fas fa-chart-line"></i>
+            <span>Statistiques</span>
+        </a>
+        <a href="/profile" class="nav-link">
+            <i class="fas fa-user-circle"></i>
+            <span>Mon Profil</span>
+        </a>
+        {{if .User}}
+        {{if or .User.IsAdmin .User.IsOwner}}
+        <a href="/dashboard" class="nav-link">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </a>
+        {{end}}
+        {{end}}
+    </nav>
+    
+    <div class="header-actions">
+        <button id="cart-button" class="btn" title="Panier" aria-label="Ouvrir le panier" onclick="if(typeof openCart==='function'){openCart();}else{console.error('openCart non disponible');}" style="position: relative; cursor: pointer;">
+            <i class="fas fa-shopping-cart"></i>
+            <span id="cart-count" class="cart-count" style="display: none;">0</span>
+        </button>
+        <button id="refresh-btn" class="btn" data-endpoint="/api/refresh">
+            <i class="fas fa-sync-alt"></i>
+            <span>Actualiser</span>
+        </button>
+    </div>
+</header>
+
+<main class="main-content">
+    {{block "content" .}}{{end}}
+</main>
+
+<footer class="site-footer" style="margin-top: 4rem; padding: 2rem; text-align: center; border-top: 1px solid var(--border);">
+    <p style="color: var(--muted);">
+        <a href="/terms" style="color: var(--accent); text-decoration: none;">Conditions d'utilisation</a>
+        | © 2024 Groupie Tracker
+    </p>
+</footer>
+
+<!-- Chargement des scripts -->
+<script>
+    // Vérifier que Leaflet est chargé avant d'exécuter les scripts
+    function waitForLeaflet(callback, maxAttempts = 100) {
+        let attempts = 0;
+        const checkLeaflet = setInterval(() => {
+            attempts++;
+            if (typeof L !== 'undefined' && typeof L.map === 'function') {
+                clearInterval(checkLeaflet);
+                console.log('✅ Leaflet chargé avec succès');
+                // Attendre un peu pour s'assurer que tout est prêt
+                setTimeout(callback, 100);
+            } else if (attempts >= maxAttempts) {
+                clearInterval(checkLeaflet);
+                console.error('❌ Leaflet n\'a pas pu être chargé après', maxAttempts, 'tentatives');
+                // Essayer de charger depuis un autre CDN en fallback
+                const fallbackScript = document.createElement('script');
+                fallbackScript.src = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
+                fallbackScript.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+                fallbackScript.crossOrigin = 'anonymous';
+                fallbackScript.defer = true;
+                fallbackScript.onload = () => {
+                    console.log('✅ Leaflet chargé depuis le CDN de secours');
+                    setTimeout(callback, 100);
+                };
+                fallbackScript.onerror = () => {
+                    console.error('❌ Impossible de charger Leaflet depuis les deux CDN');
+                    alert('Erreur: Impossible de charger la bibliothèque Leaflet. Vérifiez votre connexion internet.');
+                };
+                document.head.appendChild(fallbackScript);
+            }
+        }, 50);
+    }
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        crossorigin=""
+        defer
+        onerror="console.error('Erreur de chargement Leaflet depuis unpkg.com')"></script>
+<script src="/script/global/global.js" defer></script>
+<script src="/script/cart/cart.js" defer></script>
+{{block "pageScripts" .}}{{end}}
+
+<!-- Script d'initialisation -->
+<script>
+    // Détection du thème système
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+    
+    // Basculer entre les thèmes clair/sombre
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    }
+    
+    // Vérifier le thème sauvegardé
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+    
+    // Gestion du menu mobile
+    document.addEventListener('DOMContentLoaded', () => {
+        const menuToggle = document.querySelector('[data-menu-toggle]');
+        const nav = document.querySelector('.main-nav');
+        
+        if (menuToggle && nav) {
+            menuToggle.addEventListener('click', () => {
+                const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+                menuToggle.setAttribute('aria-expanded', !isExpanded);
+                nav.classList.toggle('active');
+                document.body.classList.toggle('menu-open');
+            });
+        }
+        
+        // Initialiser l'état actif du lien "Carte" si on est sur la page d'accueil
+        if (window.location.pathname === '/' || window.location.pathname === '') {
+            const homeLink = document.querySelector('.main-nav a[href="/"]');
+            if (homeLink) {
+                homeLink.classList.add('active');
+            }
+        }
+    });
+</script>
+</body>
+</html>
+{{end}}
+
+

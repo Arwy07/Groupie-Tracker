@@ -1,0 +1,296 @@
+/* Styles pour le panier */
+
+.cart-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-modal.is-open {
+    display: flex;
+}
+
+.cart-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+}
+
+.cart-modal-content {
+    position: relative;
+    background: var(--panel);
+    border-radius: var(--border-radius-lg);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    z-index: 1;
+}
+
+.cart-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: color 0.2s;
+}
+
+.cart-modal-close:hover {
+    color: var(--text);
+}
+
+.cart-header {
+    padding: 2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.cart-header h2 {
+    margin: 0;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cart-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.cart-loading,
+.cart-empty,
+.cart-error {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+}
+
+.cart-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-alt);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 1rem;
+    align-items: start;
+}
+
+.cart-item-image {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.cart-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cart-item-details {
+    flex: 1;
+}
+
+.cart-item-details h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text);
+    font-size: 1.1rem;
+}
+
+.cart-item-location,
+.cart-item-date,
+.cart-item-seat {
+    margin: 0.25rem 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cart-item-price {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    gap: 0.5rem;
+}
+
+.cart-item-price .price {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.cart-item-remove {
+    background: transparent;
+    border: none;
+    color: var(--error);
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color 0.2s;
+}
+
+.cart-item-remove:hover {
+    color: #dc2626;
+}
+
+.cart-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.cart-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.cart-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.cart-actions .btn {
+    flex: 1;
+}
+
+/* Bouton panier dans le header - Priorité maximale */
+.header-actions #cart-button,
+#cart-button.btn {
+    position: relative !important;
+    padding: 0.75rem 1rem !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: var(--border-radius-sm) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.1rem !important;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3) !important;
+    margin-right: 1rem !important;
+    z-index: 1 !important;
+    overflow: visible !important;
+    isolation: isolate !important;
+}
+
+/* Désactiver les pseudo-éléments pour le bouton panier */
+.header-actions #cart-button::before,
+.header-actions #cart-button::after,
+#cart-button.btn::before,
+#cart-button.btn::after {
+    content: none !important;
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+    visibility: hidden !important;
+}
+
+.header-actions #cart-button:hover,
+#cart-button.btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4) !important;
+    background: linear-gradient(135deg, var(--accent-hover), var(--accent-2-hover)) !important;
+}
+
+.header-actions #cart-button:active,
+#cart-button.btn:active {
+    transform: translateY(0) !important;
+}
+
+.header-actions #cart-button i,
+#cart-button.btn i {
+    font-size: 1.25rem !important;
+    display: block !important;
+    position: relative !important;
+    z-index: 2 !important;
+    pointer-events: none !important;
+}
+
+.cart-count {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    min-width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 900;
+    padding: 0;
+    box-shadow: 
+        0 4px 12px rgba(239, 68, 68, 0.9),
+        0 0 0 3px rgba(10, 14, 26, 1),
+        0 0 0 5px rgba(239, 68, 68, 0.3);
+    border: 3px solid white;
+    z-index: 1000;
+    line-height: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    letter-spacing: -0.5px;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.cart-count:empty {
+    display: none !important;
+}
+
+/* S'assurer que le header-actions permet au compteur de dépasser */
+.header-actions {
+    overflow: visible !important;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+}
+
+.header-actions > * {
+    flex-shrink: 0 !important;
+}
+
+.header-actions #cart-button * {
+    pointer-events: none !important;
+}
+
+.header-actions #cart-button {
+    pointer-events: auto !important;
+}
+

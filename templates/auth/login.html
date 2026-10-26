@@ -1,0 +1,129 @@
+{{define "login.html"}}
+{{template "layout" .}}
+{{end}}
+
+{{define "head"}}
+<style>
+    .auth-container {
+        max-width: 400px;
+        margin: 4rem auto;
+        padding: 2rem;
+        background: var(--panel);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+    }
+    .auth-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--text);
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--muted);
+    }
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--border);
+        background: var(--bg-alt);
+        color: var(--text);
+        font-size: 1rem;
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color, #3498db);
+    }
+    .btn-submit {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--primary-color, #3498db);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-submit:hover {
+        background: var(--secondary-color, #2980b9);
+    }
+    .auth-links {
+        margin-top: 1.5rem;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+    .auth-links a {
+        color: var(--primary-color, #3498db);
+        text-decoration: none;
+    }
+    .error-message {
+        background: rgba(244, 63, 94, 0.1);
+        color: #f43f5e;
+        padding: 0.75rem;
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    .success-message {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+        padding: 0.75rem;
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    /* Masquer la navigation sur les pages d'auth */
+    .main-nav, .header-actions, .menu-toggle {
+        display: none !important;
+    }
+</style>
+{{end}}
+
+{{define "content"}}
+<div class="auth-container">
+    <h2 class="auth-title">Connexion</h2>
+    
+    {{if .Error}}
+    <div class="error-message">
+        {{.Error}}
+    </div>
+    {{end}}
+
+    <form method="POST" action="/login">
+        <div class="form-group">
+            <label class="form-label" for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-input" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="password">Mot de passe</label>
+            <input type="password" id="password" name="password" class="form-input" required>
+        </div>
+        
+        <button type="submit" class="btn-submit">Se connecter</button>
+    </form>
+    
+    <div class="auth-links">
+        <p>Pas encore de compte ? <a href="/register">S'inscrire</a></p>
+        <p><a href="/">Retour à l'accueil</a></p>
+    </div>
+</div>
+
+<script>
+    // Vérifier les paramètres d'URL pour le message de succès
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('registered') === 'true') {
+        const container = document.querySelector('.auth-title');
+        const successMsg = document.createElement('div');
+        successMsg.className = 'success-message';
+        successMsg.textContent = 'Inscription réussie ! Vous pouvez maintenant vous connecter.';
+        container.parentNode.insertBefore(successMsg, container.nextSibling);
+    }
+</script>
+{{end}}

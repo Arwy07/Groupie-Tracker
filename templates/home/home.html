@@ -1,0 +1,312 @@
+{{define "home.html"}}
+{{template "layout" .}}
+{{end}}
+
+{{define "content"}}
+<section class="hero hero--full">
+    <div class="hero__content">
+        <div class="hero__text">
+            <div class="hero__badge">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Cartographie live</span>
+            </div>
+            <h1>Découvrez les tournées musicales en temps réel</h1>
+            <p class="lede">
+                Explorez les concerts de vos artistes préférés avec une interface intuitive. 
+                Filtrez, recherchez et visualisez toutes les dates sur une carte interactive.
+            </p>
+            <div class="hero__cta">
+                <button type="button" class="primary-btn btn-modern" data-open-filters>
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Configurer les filtres</span>
+                </button>
+                <a class="ghost-btn btn-modern" href="#artists-panel">
+                    <i class="fas fa-images"></i>
+                    <span>Voir la galerie</span>
+                </a>
+            </div>
+        </div>
+        <div class="hero__metrics">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Créations couvertes</dt>
+                    <dd>{{.FilterMeta.CreationMin}} – {{.FilterMeta.CreationMax}}</dd>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-compact-disc"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Premiers albums</dt>
+                    <dd>{{.FilterMeta.AlbumMin}} – {{.FilterMeta.AlbumMax}}</dd>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Villes suivies</dt>
+                    <dd>{{len .FilterMeta.Locations}}</dd>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="metric-content">
+                    <dt>Artistes</dt>
+                    <dd id="total-artists-count">{{len .FilterMeta.Locations}}</dd>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="map" class="map-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Carte mondiale</p>
+            <h2>Visualisez tous les concerts sur la carte</h2>
+            <p>Explorez les lieux de concert de tous les artistes en un coup d'œil.</p>
+        </div>
+    </div>
+    <div class="map-container-global">
+        <div id="global-map" class="map-wrapper-global">
+            <!-- Carte chargée immédiatement - pas de loading -->
+        </div>
+        <div class="map-legend">
+            <div class="legend-item">
+                <span class="legend-color" style="background: linear-gradient(135deg, var(--accent), var(--accent-2));"></span>
+                <span>Concerts à venir</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: var(--muted);"></span>
+                <span>Concerts passés</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="filters" class="control-panel">
+    <div class="control-panel__copy">
+        <p class="eyebrow">Console</p>
+        <h2>Filtres minimalistes, focus maximal</h2>
+        <p>On ouvre le tiroir uniquement quand on en a besoin. Les badges résument l’état actuel.</p>
+    </div>
+    <div class="control-panel__actions">
+        <button type="button" class="primary-btn btn-modern" data-open-filters>
+            <i class="fas fa-filter"></i>
+            <span>Ouvrir les filtres</span>
+        </button>
+        <div class="control-panel__badges">
+            <span class="badge-item">
+                <i class="fas fa-calendar"></i>
+                {{.FilterMeta.CreationMin}} - {{.FilterMeta.CreationMax}} création
+            </span>
+            <span class="badge-item">
+                <i class="fas fa-users"></i>
+                {{.FilterMeta.MembersMin}} - {{.FilterMeta.MembersMax}} membres
+            </span>
+            <span class="badge-item">
+                <i class="fas fa-map-marker-alt"></i>
+                {{len .FilterMeta.Locations}} lieux
+            </span>
+        </div>
+    </div>
+</section>
+
+<section class="search-shell" id="search">
+    <div class="search-shell__copy">
+        <p class="eyebrow">Recherche transversale</p>
+        <h3>Nom, membre, ville, date…</h3>
+        <p>La barre d’auto-complétion pointe la carte correspondante et scroll automatiquement.</p>
+    </div>
+    <div class="search-shell__field">
+        <label for="search-input">Tape un mot-clé (ex: “phil”, “1994”, “Paris”)</label>
+        <input id="search-input" type="search" placeholder="Rechercher dans la line-up">
+        <ul id="suggestions" class="suggestions"></ul>
+    </div>
+</section>
+
+<div class="filters-overlay" id="filters-overlay" aria-hidden="true">
+    <div class="filters-drawer" role="dialog" aria-modal="true" aria-labelledby="filters-title">
+        <header class="filters-drawer__header">
+            <div>
+                <p class="eyebrow">Tiroir de filtres</p>
+                <h2 id="filters-title">Composer la sélection idéale</h2>
+                <p>Chaque champ déclenche une requête Go optimisée avant de renvoyer les cartes.</p>
+            </div>
+            <button type="button" class="icon-btn" data-close-filters aria-label="Fermer les filtres">✕</button>
+        </header>
+        <form id="filter-form" class="filter-form">
+            <div class="filter-row">
+                <div class="filter-row__label">
+                    <p class="filter-title">Année de création</p>
+                    <p class="filter-hint">Filtrer sur une période précise</p>
+                </div>
+                <div class="input-duo">
+                    <input type="number" name="creationMin" placeholder="Min ({{.FilterMeta.CreationMin}})">
+                    <input type="number" name="creationMax" placeholder="Max ({{.FilterMeta.CreationMax}})">
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-row__label">
+                    <p class="filter-title">Premier album</p>
+                    <p class="filter-hint">Découper par décennie de sortie</p>
+                </div>
+                <div class="input-duo">
+                    <input type="number" name="albumMin" placeholder="Min ({{.FilterMeta.AlbumMin}})">
+                    <input type="number" name="albumMax" placeholder="Max ({{.FilterMeta.AlbumMax}})">
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-row__label">
+                    <p class="filter-title">Nombre de membres</p>
+                    <p class="filter-hint">Débusquer duos, quatuors ou orchestres</p>
+                </div>
+                <div class="input-duo">
+                    <input type="number" name="membersMin" placeholder="Min ({{.FilterMeta.MembersMin}})">
+                    <input type="number" name="membersMax" placeholder="Max ({{.FilterMeta.MembersMax}})">
+                </div>
+            </div>
+            <div class="filter-row filter-row--full">
+                <div class="filter-row__label">
+                    <p class="filter-title">Concerts par ville</p>
+                    <p class="filter-hint">Sélectionner des hotspots précis</p>
+                </div>
+                <div class="locations-scroll">
+                    {{range .FilterMeta.Locations}}
+                    <label class="checkbox">
+                        <input type="checkbox" name="location" value="{{.}}">
+                        <span>{{.}}</span>
+                    </label>
+                    {{end}}
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button type="reset" class="ghost-btn" data-close-filters>Réinitialiser</button>
+                <button type="submit" class="primary-btn">Appliquer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<section class="artists-section" id="artists-panel">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Line-up dynamique</p>
+            <h2>Grille pilotée par les filtres</h2>
+            <p>Chaque carte se met à jour instantanément après une requête Go.</p>
+        </div>
+        <button class="ghost-btn btn-modern" type="button" data-open-filters>
+            <i class="fas fa-edit"></i>
+            <span>Modifier les filtres</span>
+        </button>
+    </div>
+    <div id="artists" class="card-gallery"></div>
+</section>
+
+<section id="statistiques" class="statistiques-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Statistiques globales</p>
+            <h2>Vue d'ensemble de la plateforme</h2>
+            <p>Analysez les données de tous les artistes et concerts.</p>
+        </div>
+    </div>
+    <div id="insights" class="insight-grid">
+        <article class="insight-card">
+            <p class="eyebrow">Instantané</p>
+            <h3 id="total-artists">0 artiste visible</h3>
+            <p>Le compteur affiche exactement ce qui est rendu dans la grille.</p>
+        </article>
+        <article class="insight-card">
+            <p class="eyebrow">Cartographie</p>
+            <h3>Leaflet embarqué</h3>
+            <p>Chaque fiche charge les concerts sur carte avec clustering natif.</p>
+        </article>
+        <article class="insight-card">
+            <p class="eyebrow">Pipeline</p>
+            <h3>Backend Go optimisé</h3>
+            <p>Refresh manuel, cache mémoire et parallélisation pour tenir la charge.</p>
+        </article>
+    </div>
+</section>
+
+<section class="footer-section" id="footer">
+    <div class="footer-content">
+        <div class="footer-column">
+            <h4>À propos</h4>
+            <ul>
+                <li><a href="#map">Carte mondiale</a></li>
+                <li><a href="#artists-panel">Artistes</a></li>
+                <li><a href="#concerts">Concerts</a></li>
+                <li><a href="#statistiques">Statistiques</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Fonctionnalités</h4>
+            <ul>
+                <li><a href="#filters">Filtres avancés</a></li>
+                <li><a href="#search">Recherche</a></li>
+                <li><a href="#map">Cartographie</a></li>
+                <li><a href="#artists-panel">Galerie</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Informations</h4>
+            <ul>
+                <li><a href="#">À propos</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#">FAQ</a></li>
+                <li><a href="#">Mentions légales</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h4>Ressources</h4>
+            <ul>
+                <li><a href="#">Documentation</a></li>
+                <li><a href="#">API</a></li>
+                <li><a href="#">Support</a></li>
+                <li><a href="#">Changelog</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <div class="footer-brand">
+            <span>
+                <i class="fas fa-globe-americas"></i>
+                Groupie Tracker
+            </span>
+        </div>
+        <div class="footer-copyright">
+            <p>&copy; 2025 Groupie Tracker. Tous droits réservés.</p>
+            <p class="footer-data">Données fournies par l'API Groupie Tracker</p>
+        </div>
+    </div>
+</section>
+{{end}}
+
+{{define "pageScripts"}}
+<script>
+window.__ARTISTS = {{.ArtistsJSON}};
+console.log('Artistes chargés:', window.__ARTISTS ? window.__ARTISTS.length : 0);
+// Mettre à jour le nombre d'artistes
+document.addEventListener('DOMContentLoaded', function() {
+    const artistsCount = window.__ARTISTS ? window.__ARTISTS.length : 0;
+    const countElement = document.getElementById('total-artists-count');
+    if (countElement && artistsCount > 0) {
+        countElement.textContent = artistsCount + ' groupes';
+    }
+});
+</script>
+<script src="/script/app/app.js" defer></script>
+<script src="/script/map/map.js" defer></script>
+{{end}}
+
+

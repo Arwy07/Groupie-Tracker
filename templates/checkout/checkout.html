@@ -1,0 +1,502 @@
+{{define "checkout.html"}}
+{{template "layout" .}}
+{{end}}
+
+{{define "head"}}
+<link rel="stylesheet" href="/assets/styles/style/style.css">
+<style>
+    .checkout-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 1.5rem;
+    }
+    .checkout-header {
+        margin-bottom: 1.5rem;
+    }
+    .checkout-header h1 {
+        color: var(--text);
+        font-size: 1.5rem;
+    }
+    .checkout-items {
+        background: var(--panel);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow);
+    }
+    .checkout-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+    .checkout-item:last-child {
+        border-bottom: none;
+    }
+    .checkout-total {
+        background: var(--panel);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow);
+    }
+    .checkout-total-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+    
+    /* Formulaire de paiement */
+    .payment-card {
+        background: var(--panel);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+    }
+    .payment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    .payment-header h3 {
+        color: var(--text);
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    .payment-header .secure-icon {
+        color: var(--success);
+        font-size: 1.2rem;
+    }
+    .card-brands {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .card-brands img {
+        height: 24px;
+        opacity: 0.8;
+    }
+    .card-brands i {
+        font-size: 1.8rem;
+        opacity: 0.7;
+    }
+    .card-brands .fa-cc-visa { color: #1a1f71; }
+    .card-brands .fa-cc-mastercard { color: #eb001b; }
+    .card-brands .fa-cc-amex { color: #006fcf; }
+    .card-brands .fa-cc-discover { color: #ff6000; }
+    .card-brands .fa-cc-jcb { color: #0e4c96; }
+    
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    .form-group label {
+        display: block;
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--border-radius-sm);
+        color: var(--text);
+        font-size: 1rem;
+        transition: var(--transition-fast);
+    }
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+    }
+    .form-group input::placeholder {
+        color: var(--muted);
+        opacity: 0.6;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .card-number-wrapper {
+        position: relative;
+    }
+    .card-number-wrapper input {
+        padding-right: 3rem;
+    }
+    .card-number-wrapper .card-type-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+        font-size: 1.4rem;
+    }
+    
+    .pay-button {
+        width: 100%;
+        padding: 1rem;
+        margin-top: 1rem;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        border: none;
+        border-radius: var(--border-radius-sm);
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .pay-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(168, 85, 247, 0.3);
+    }
+    .pay-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .secure-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        color: var(--muted);
+        font-size: 0.8rem;
+    }
+    .secure-footer i {
+        color: var(--success);
+    }
+    
+    /* Sélecteur de méthode de paiement */
+    .payment-methods {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .payment-method-btn {
+        flex: 1;
+        padding: 1rem;
+        background: var(--bg);
+        border: 2px solid var(--border);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: var(--transition-fast);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        color: var(--muted);
+        font-weight: 500;
+    }
+    .payment-method-btn:hover {
+        border-color: var(--accent);
+        color: var(--text);
+    }
+    .payment-method-btn.active {
+        border-color: var(--accent);
+        background: rgba(168, 85, 247, 0.1);
+        color: var(--text);
+    }
+    .payment-method-btn i {
+        font-size: 1.3rem;
+    }
+    .payment-method-btn .fa-paypal {
+        color: #0070ba;
+    }
+    .payment-method-btn .fa-credit-card {
+        color: var(--accent);
+    }
+    
+    /* Sections de paiement */
+    .payment-section {
+        display: none;
+    }
+    .payment-section.active {
+        display: block;
+    }
+    
+    /* Bouton PayPal */
+    .paypal-button {
+        width: 100%;
+        padding: 1rem;
+        background: #0070ba;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .paypal-button:hover {
+        background: #005ea6;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 112, 186, 0.3);
+    }
+    .paypal-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+</style>
+{{end}}
+
+{{define "content"}}
+<div class="checkout-container">
+    <div class="checkout-header">
+        <h1><i class="fas fa-shopping-bag"></i> Finaliser la commande</h1>
+    </div>
+    
+    <div class="checkout-items">
+        <h2 style="margin-bottom: 1rem; color: var(--text); font-size: 1rem;">Récapitulatif</h2>
+        {{range .Items}}
+        <div class="checkout-item">
+            <div>
+                <strong style="color: var(--text);">Concert</strong>
+                <p style="color: var(--muted); margin: 0.25rem 0; font-size: 0.9rem;">{{.SeatType}} × {{.Quantity}}</p>
+            </div>
+            <div style="color: var(--accent); font-weight: 600;">
+                {{mul .Price .Quantity}}€
+            </div>
+        </div>
+        {{end}}
+    </div>
+    
+    <div class="checkout-total">
+        <div class="checkout-total-row">
+            <span>Total</span>
+            <span style="color: var(--accent);">{{.Total}}€</span>
+        </div>
+    </div>
+    
+    <!-- Formulaire de paiement -->
+    <div class="payment-card">
+        <div class="payment-header">
+            <h3>Choisissez votre méthode de paiement</h3>
+            <i class="fas fa-check-circle secure-icon"></i>
+        </div>
+        
+        <!-- Sélecteur de méthode -->
+        <div class="payment-methods">
+            <button type="button" class="payment-method-btn active" onclick="selectPaymentMethod('card')">
+                <i class="fas fa-credit-card"></i>
+                <span>Carte bancaire</span>
+            </button>
+            <button type="button" class="payment-method-btn" onclick="selectPaymentMethod('paypal')">
+                <i class="fab fa-paypal"></i>
+                <span>PayPal</span>
+            </button>
+        </div>
+        
+        <!-- Section Carte bancaire -->
+        <div id="card-section" class="payment-section active">
+            <div class="card-brands">
+                <i class="fab fa-cc-mastercard"></i>
+                <i class="fab fa-cc-visa"></i>
+                <i class="fab fa-cc-amex"></i>
+                <i class="fab fa-cc-discover"></i>
+                <i class="fab fa-cc-jcb"></i>
+            </div>
+            
+            <form id="payment-form" onsubmit="processCardPayment(event)">
+                <div class="form-group">
+                    <label for="card-name">Nom sur la carte</label>
+                    <input type="text" id="card-name" placeholder="Nom" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="card-number">N° de carte</label>
+                    <div class="card-number-wrapper">
+                        <input type="text" id="card-number" placeholder="•••• •••• •••• ••••" maxlength="19" required>
+                        <i class="fas fa-credit-card card-type-icon"></i>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="card-expiry">Date d'expiration</label>
+                        <input type="text" id="card-expiry" placeholder="MM/AA" maxlength="5" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="card-cvv">Cryptogramme visuel</label>
+                        <input type="text" id="card-cvv" placeholder="•••" maxlength="4" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="pay-button" id="pay-button-card">
+                    <i class="fas fa-lock"></i>
+                    Payer {{.Total}}€
+                </button>
+            </form>
+        </div>
+        
+        <!-- Section PayPal -->
+        <div id="paypal-section" class="payment-section">
+            <div style="text-align: center; padding: 1rem 0;">
+                <i class="fab fa-paypal" style="font-size: 3rem; color: #0070ba; margin-bottom: 1rem;"></i>
+                <p style="color: var(--muted); margin-bottom: 1.5rem;">Vous allez être redirigé vers PayPal pour finaliser votre paiement en toute sécurité.</p>
+                <button type="button" class="paypal-button" id="pay-button-paypal" onclick="processPayPalPayment()">
+                    <i class="fab fa-paypal"></i>
+                    Payer avec PayPal
+                </button>
+            </div>
+        </div>
+        
+        <div class="secure-footer">
+            <i class="fas fa-shield-alt"></i>
+            <span>Paiement 100% sécurisé</span>
+        </div>
+    </div>
+    
+    {{if .Success}}
+    <div style="background: var(--success); color: white; padding: 1rem; border-radius: var(--border-radius); margin-top: 1.5rem; text-align: center;">
+        <i class="fas fa-check-circle"></i> Paiement effectué avec succès !
+    </div>
+    {{end}}
+    
+    {{if .Error}}
+    <div style="background: var(--error); color: white; padding: 1rem; border-radius: var(--border-radius); margin-top: 1.5rem; text-align: center;">
+        <i class="fas fa-exclamation-circle"></i> {{.Error}}
+    </div>
+    {{end}}
+</div>
+
+<script>
+// Sélection de la méthode de paiement
+function selectPaymentMethod(method) {
+    // Mettre à jour les boutons
+    document.querySelectorAll('.payment-method-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    
+    // Afficher la bonne section
+    document.querySelectorAll('.payment-section').forEach(section => section.classList.remove('active'));
+    document.getElementById(method + '-section').classList.add('active');
+}
+
+// Formatage automatique du numéro de carte
+document.getElementById('card-number').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+    let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+    e.target.value = formatted;
+});
+
+// Formatage automatique de la date d'expiration
+document.getElementById('card-expiry').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2);
+    }
+    e.target.value = value;
+});
+
+// CVV - chiffres uniquement
+document.getElementById('card-cvv').addEventListener('input', function(e) {
+    e.target.value = e.target.value.replace(/\D/g, '');
+});
+
+// Paiement par carte (simulation)
+async function processCardPayment(event) {
+    event.preventDefault();
+    
+    const payButton = document.getElementById('pay-button-card');
+    payButton.disabled = true;
+    payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
+    
+    const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+    const cardName = document.getElementById('card-name').value;
+    const cardExpiry = document.getElementById('card-expiry').value;
+    const cardCvv = document.getElementById('card-cvv').value;
+    
+    if (cardNumber.length < 13 || cardNumber.length > 19) {
+        alert('Numéro de carte invalide');
+        resetCardButton();
+        return;
+    }
+    
+    if (cardCvv.length < 3) {
+        alert('CVV invalide');
+        resetCardButton();
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/payment/demo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cardName: cardName,
+                cardLast4: cardNumber.slice(-4)
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.href = '/checkout?success=true';
+        } else {
+            alert(data.error || 'Erreur lors du paiement');
+            resetCardButton();
+        }
+    } catch (error) {
+        alert('Erreur de connexion');
+        resetCardButton();
+    }
+}
+
+// Paiement PayPal
+async function processPayPalPayment() {
+    const payButton = document.getElementById('pay-button-paypal');
+    payButton.disabled = true;
+    payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirection...';
+    
+    try {
+        const response = await fetch('/api/payment/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paymentMethod: 'paypal' })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.approvalUrl) {
+            window.location.href = data.approvalUrl;
+        } else {
+            alert(data.error || 'Erreur lors de la création du paiement PayPal');
+            resetPayPalButton();
+        }
+    } catch (error) {
+        alert('Erreur de connexion');
+        resetPayPalButton();
+    }
+}
+
+function resetCardButton() {
+    const payButton = document.getElementById('pay-button-card');
+    payButton.disabled = false;
+    payButton.innerHTML = '<i class="fas fa-lock"></i> Payer {{.Total}}€';
+}
+
+function resetPayPalButton() {
+    const payButton = document.getElementById('pay-button-paypal');
+    payButton.disabled = false;
+    payButton.innerHTML = '<i class="fab fa-paypal"></i> Payer avec PayPal';
+}
+</script>
+{{end}}
+

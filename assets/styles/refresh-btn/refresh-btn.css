@@ -1,0 +1,27 @@
+/* Style pour le bouton Actualiser - Rose/Violet */
+#refresh-btn.btn {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.9), rgba(168, 85, 247, 0.9)) !important;
+    border: 2px solid rgba(236, 72, 153, 0.5) !important;
+    color: white !important;
+    box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3) !important;
+    font-weight: 600 !important;
+    backdrop-filter: blur(10px) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+#refresh-btn.btn:hover {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 1), rgba(168, 85, 247, 1)) !important;
+    border-color: rgba(236, 72, 153, 0.8) !important;
+    box-shadow: 0 6px 25px rgba(236, 72, 153, 0.5) !important;
+    transform: translateY(-2px) !important;
+}
+
+#refresh-btn.btn:active {
+    transform: translateY(0) !important;
+}
+
+#refresh-btn.btn i {
+    color: white !important;
+}
+
