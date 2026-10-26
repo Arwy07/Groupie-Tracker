@@ -2,7 +2,6 @@
 
 Application web pédagogique en Go pour explorer des artistes, leurs membres et leurs concerts. Le projet associe une API musicale, une carte interactive, des comptes utilisateurs, des favoris et un parcours de réservation de démonstration.
 
-![Aperçu du projet](assets/pictures/cover.png)
 
 ## Fonctionnalités
 
